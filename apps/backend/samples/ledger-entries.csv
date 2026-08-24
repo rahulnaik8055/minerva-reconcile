@@ -1,8 +1,16 @@
-Entry Date,Entry Amount,Currency,GL Code,Account Title,Line Description,Ref,Counterparty
-2026-07-03,-250.00,USD,6100,Office Supplies,Acme office supplies purchase,INV-1001,Acme Office Supply Inc
-07/06/2026,-1180.00,USD,6200,Marketing,Globex media ad buy,,Globex Media
-07/12/2026,-4300.00,USD,7000,Professional Fees,Initech consulting installment,INV-1004,Initech Consulting Group LLC
-2026-07-15,-742.50,USD,6400,Freight,Umbrella logistics shipping,,Umbrella Logistics Co
-2026-07-20,-610.00,USD,6500,Catering,Soylent corp catering,INV 1007,Soylent Corp.
-07/24/2026,784.45,USD,4100,Marketplace Revenue,Stripe payout received,PAYOUT 8891,Stripe
-2026-07-29,-89.99,USD,6100,Office Supplies,Acme reorder,,Acme Office Supply
+Entry Date,Entry Amount,Currency,GL Code,Account Title,Line Description,Vendor,Ref
+2026-08-01,6500.00,USD,6305,Rent,Halloway Property Group August rent,Halloway Property Group,RENT-AUG
+2026-08-04,980.00,USD,6110,Software Subscriptions,Fernbrook IT Services support retainer,Fernbrook IT Services,FB-90211
+2026-08-05,1240.00,USD,6210,Cloud Hosting,Amazon Web Services usage August,Amazon Web Services,INV-2087
+2026-08-05,145.00,USD,6520,Parking,Granite Peak Parking monthly pass,Granite Peak Parking,GPP-558
+2026-08-07,615.50,USD,6210,Cloud Hosting,Amazon Web Services usage overage,Amazon Web Services,AWS-USG-77531
+2026-08-08,985.00,USD,6740,Insurance,Larkspur Insurance premium payable,Larkspur Insurance,INV-2114
+2026-08-09,427.50,USD,6610,Software Subscriptions,Tessellate Design seat expansion,Tessellate Design,TD-8842
+2026-08-11,2150.00,USD,7410,Marketing,Solstice Marketing campaign spend,Solstice Marketing,SM-1187
+2026-08-12,850.00,USD,6310,Payment Processing,Stripe payout reconciliation,Stripe,STRP-PAYOUT-4411
+2026-08-13,2300.00,USD,5240,Data Services,Cloudpeak Analytics subscription August,Cloudpeak Analytics,LP-9918
+2026-08-15,2300.00,USD,5240,Data Services,Cloudpeak Analytics subscription rebooking,Cloudpeak Analytics,LP-9931
+2026-08-15,742.60,USD,6820,Catering,Orchard Lane Catering offsite late posting,Orchard Lane Catering,CAT-7712
+2026-08-17,560.00,USD,6910,Training,Pinehurst Training workshop fees,Pinehurst Training,PH-664
+2026-08-21,310.75,USD,6410,Utilities,Ravenscourt Utilities invoice,Ravenscourt Utilities,UT-33017
+2026-08-28,18400.00,USD,6010,Payroll,Beacon Ridge Payroll second half August,Beacon Ridge Payroll,PR-AUG-B

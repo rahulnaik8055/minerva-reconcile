@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ImportsModule } from './imports/imports.module';
 import { ReviewModule } from './reconciliation/review/review.module';
+import { DemoModule } from './demo/demo.module';
 import { DatabaseModule } from '../database/database.module';
 import { validationSchema } from '../config/env.validation';
 import { createLoggerConfig } from '../common/logging/logger.config';
@@ -27,6 +28,7 @@ import { createLoggerConfig } from '../common/logging/logger.config';
     AuthModule,
     ImportsModule,
     ReviewModule,
+    DemoModule,
   ],
 })
 export class AppModule {}

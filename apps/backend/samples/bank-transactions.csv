@@ -1,11 +1,18 @@
-Posted Date,Amount,Currency,Memo,Reference
-2026-07-03,-250.00,USD,ACME OFFICE SUPPLY INC,INV-1001
-07/08/2026,-1180.00,USD,GLOBEX MEDIA GROUP,
-2026-07-04,-89.99,USD,"Acme Office Supply, Co.",INV-1003
-07/11/2026,-4300.00,USD,"INITECH CONSULTING GROUP LLC payment",INV-1004
-2026-07-15,-742.50,USD,Umbrella Logistics Ltd,
-2026-07-20,-610.00,USD,Soylent Corp,inv-1007
-2026-07-22,-49.99,USD,CloudFlake Subscriptions,
-07/24/2026,784.45,USD,STRIPE PAYOUT,PAYOUT-8891
-2026-07-03,-250.00,USD,ACME OFFICE SUPPLY INC,INV-1001
-2026-07-28,-1200.00,USD,Mystery Ventures LLC,
+Posted Date,Amount,Currency,Vendor,Description,Reference
+2026-08-04,980.00,USD,Fernbrook IT Services,Payment Fernbrook IT Services monthly support,FB-90211
+2026-08-05,1240.00,USD,Amazon Web Services,AWS cloud services August usage,INV-2087
+2026-08-05,145.00,USD,Granite Peak Parking,Payment Granite Peak Parking monthly pass,GPP-558
+2026-08-06,742.60,USD,Orchard Lane Catering,Payment Orchard Lane Catering team offsite,CAT-7712
+2026-08-07,615.50,USD,AMZN WEB SERVICES,Card purchase AMZN WEB SERVICES overage,AWS-USG-77531
+2026-08-08,1100.00,USD,Larkspur Insurance,Payment Larkspur Insurance premium August,INV-2114
+2026-08-10,850.00,USD,Stripe,Stripe payout received,STRP-PAYOUT-4411
+2026-08-11,2150.00,USD,Solstice Marketing,Payment Solstice Marketing campaign invoice,SM-1187
+2026-08-12,212.40,USD,Cedar Grove Office Supply,Card purchase Cedar Grove Office Supply,
+2026-08-13,89.99,USD,Halcyon Print Studio,Card purchase Halcyon Print Studio,
+2026-08-14,2300.00,USD,Cloudpeak Analytics,ACH debit Cloudpeak Analytics subscription,
+2026-08-17,560.00,USD,Pinehurst Training,Payment Pinehurst Training workshop,PH-664
+2026-08-18,12500.00,USD,Brightpay,Brightpay payout SET-2026-0818,SET-2026-0818
+2026-08-19,64.25,USD,Meridian Couriers,Card purchase Meridian Couriers,
+2026-08-21,310.75,USD,Ravenscourt Utilities,Payment Ravenscourt Utilities invoice UT-33017,UT-33017
+2026-08-21,310.75,USD,Ravenscourt Utilities,Payment Ravenscourt Utilities retry charge,
+2026-08-22,964.20,USD,Brightpay,Brightpay payout SET-2026-0822,SET-2026-0822

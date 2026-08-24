@@ -31,6 +31,9 @@
     "db:migrate": "npm run db:migrate --workspace=apps/backend",
     "db:push": "npm run db:push --workspace=apps/backend",
     "db:studio": "npm run db:studio --workspace=apps/backend",
+    "db:seed": "npm run db:seed --workspace=apps/backend",
+    "db:reset": "npm run db:reset --workspace=apps/backend",
+    "db:demo": "npm run db:demo --workspace=apps/backend",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f"

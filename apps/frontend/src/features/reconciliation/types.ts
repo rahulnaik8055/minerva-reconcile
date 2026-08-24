@@ -251,3 +251,16 @@ export interface ImportSummary {
   rejectedCount: number;
   errors: Array<{ row: number; message: string }>;
 }
+
+export interface DemoStatus {
+  demoDataLoaded: boolean;
+}
+
+export interface DemoLoadResult {
+  bankTransactions: number;
+  ledgerEntries: number;
+  invoices: number;
+  settlementLines: number;
+  settlements: number;
+  proposalsCreated: number;
+}

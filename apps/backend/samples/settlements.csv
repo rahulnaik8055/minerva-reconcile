@@ -1,10 +1,10 @@
 Payout Id,Payout Date,Provider,Currency,Type,Description,Amount,Payment Reference
-PAYOUT-8891,2026-07-23,Stripe,USD,sale,Card payment INV-1007,610.00,INV-1007
-PAYOUT-8891,2026-07-23,Stripe,USD,sale,Card payment,480.00,
-PAYOUT-8891,2026-07-23,Stripe,USD,refund,Partial refund,-75.00,INV-1007
-PAYOUT-8891,2026-07-23,Stripe,USD,fee,Processing fees,-167.55,
-PAYOUT-8891,2026-07-23,Stripe,USD,fee,Dispute fee,-15.00,
-PAYOUT-8891,2026-07-23,Stripe,USD,deduction,Chargeback,-48.00,
-PAYOUT-8892,07/29/2026,Stripe,USD,sale,Card payment,250.00,
-PAYOUT-8892,07/29/2026,Stripe,USD,fee,Processing fees,-7.28,
-PAYOUT-8892,07/29/2026,Stripe,USD,reserve,Rolling reserve hold,-25.00,
+SET-2026-0818,2026-08-18,Brightpay,USD,sale,Card sales batch 4411,8300.00,INV-2201
+SET-2026-0818,2026-08-18,Brightpay,USD,sale,Card sales batch 4412,6900.00,INV-2202
+SET-2026-0818,2026-08-18,Brightpay,USD,fee,Brightpay processing fees,-1420.00,
+SET-2026-0818,2026-08-18,Brightpay,USD,refund,Customer refunds processed,-680.00,
+SET-2026-0818,2026-08-18,Brightpay,USD,deduction,Chargeback reserve deduction,-300.00,
+SET-2026-0818,2026-08-18,Brightpay,USD,adjustment,Miscellaneous adjustments,0.00,
+SET-2026-0822,2026-08-22,Brightpay,USD,sale,Card sales batch 4455,964.20,INV-2499
+SET-2026-0824,2026-08-24,Brightpay,USD,sale,Card sales batch 4470,2187.50,
+SET-2026-0824,2026-08-24,Brightpay,USD,fee,Brightpay processing fees,-64.20,

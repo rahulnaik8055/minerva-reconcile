@@ -53,6 +53,9 @@ Swagger docs: http://localhost:3001/docs
 | `npm run test`      | Backend unit tests                       |
 | `npm run db:generate` | Generate Drizzle migrations            |
 | `npm run db:migrate`  | Apply migrations                       |
+| `npm run db:seed`     | Load the synthetic demo dataset        |
+| `npm run db:reset`    | Truncate all reconciliation tables     |
+| `npm run db:demo`     | Reset the database and reseed          |
 | `npm run docker:up` | Start PostgreSQL via Docker Compose      |
 
 ## Documentation

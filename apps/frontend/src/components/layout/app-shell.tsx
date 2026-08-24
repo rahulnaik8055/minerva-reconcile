@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/hooks/use-auth';
+import { useDemoStatus } from '@/features/reconciliation/hooks/use-demo';
 
 const NAV_ITEMS = [
   { href: '/overview', label: 'Overview' },
@@ -19,6 +20,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { currentUser, logout } = useAuth();
+  const { data: demoStatus } = useDemoStatus();
 
   const handleLogout = async () => {
     await logout();
@@ -70,6 +72,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="ml-52 flex min-h-screen w-full flex-col">
+        {demoStatus?.demoDataLoaded ? (
+          <div
+            data-testid="demo-dataset-banner"
+            className="border-b border-amber-200 bg-amber-50 px-6 py-1.5 text-center text-xs font-medium text-amber-800"
+          >
+            Demo dataset — synthetic financial data
+          </div>
+        ) : null}
         <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-6">{children}</main>
       </div>
     </div>
