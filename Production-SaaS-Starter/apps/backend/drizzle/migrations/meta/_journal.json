@@ -8,6 +8,20 @@
       "when": 1785864762367,
       "tag": "0000_cool_doomsday",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787557582064,
+      "tag": "0001_organic_pete_wisdom",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787557600765,
+      "tag": "0002_activity_log_append_only_guard",
+      "breakpoints": true
     }
   ]
 }
