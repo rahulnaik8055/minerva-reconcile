@@ -56,10 +56,9 @@ const COLUMN_RENAMES: Record<string, string> = {
   amount: 'amountCents',
 };
 
-function rowSchemaWithColumnDefaults<T extends z.ZodRawShape>(
-  shape: T,
-): z.ZodEffects<z.ZodObject<T>, z.output<z.ZodObject<T>>, unknown> {
-  return z.preprocess((raw) => {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type -- return type names differ between zod major versions
+const rowSchemaWithColumnDefaults = <T extends z.ZodRawShape>(shape: T) =>
+  z.preprocess((raw) => {
     const input = typeof raw === 'object' && raw !== null ? { ...(raw as Record<string, unknown>) } : {};
 
     for (const [from, to] of Object.entries(COLUMN_RENAMES)) {
@@ -78,7 +77,6 @@ function rowSchemaWithColumnDefaults<T extends z.ZodRawShape>(
 
     return input;
   }, z.object(shape));
-}
 
 export const bankRowSchema = rowSchemaWithColumnDefaults({
   postedAt: requiredDate,

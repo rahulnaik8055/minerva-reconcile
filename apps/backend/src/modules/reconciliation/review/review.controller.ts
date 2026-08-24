@@ -10,6 +10,7 @@ import {
 } from '@nestjs/swagger';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { ZodValidationPipe } from '../../../common/pipes';
+import type { AiExplanationDto } from '../ai/ai-sanitize';
 import {
   approveProposalSchema,
   listActivityQuerySchema,
@@ -22,7 +23,6 @@ import {
 } from './dto/review.dto';
 import type {
   ActivityFeedDto,
-  AiExplanationDto,
   CandidateOptionDto,
   DecisionResultDto,
   ExceptionsResponseDto,
