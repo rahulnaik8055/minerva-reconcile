@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    container_name: reconcile-backend
+    ports:
+      - '3001:3001'
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/reconcile
+      FRONTEND_URL: http://localhost:3000
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me-in-production-at-least-32-chars}
+      JWT_EXPIRATION: 7d
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - reconcile-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    container_name: reconcile-frontend
+    ports:
+      - '3000:3000'
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001/api/v1
+    depends_on:
+      - backend
+    networks:
+      - reconcile-network
+
+  db:
+    image: postgres:16-alpine
+    container_name: reconcile-db
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: reconcile
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d reconcile']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - reconcile-network
+
+networks:
+  reconcile-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    driver: local
