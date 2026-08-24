@@ -1,0 +1,8 @@
+Entry Date,Entry Amount,Currency,GL Code,Account Title,Line Description,Ref,Counterparty
+2026-07-03,-250.00,USD,6100,Office Supplies,Acme office supplies purchase,INV-1001,Acme Office Supply Inc
+07/06/2026,-1180.00,USD,6200,Marketing,Globex media ad buy,,Globex Media
+07/12/2026,-4300.00,USD,7000,Professional Fees,Initech consulting installment,INV-1004,Initech Consulting Group LLC
+2026-07-15,-742.50,USD,6400,Freight,Umbrella logistics shipping,,Umbrella Logistics Co
+2026-07-20,-610.00,USD,6500,Catering,Soylent corp catering,INV 1007,Soylent Corp.
+07/24/2026,784.45,USD,4100,Marketplace Revenue,Stripe payout received,PAYOUT 8891,Stripe
+2026-07-29,-89.99,USD,6100,Office Supplies,Acme reorder,,Acme Office Supply

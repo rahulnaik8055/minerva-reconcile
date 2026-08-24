@@ -1,0 +1,8 @@
+Invoice No,Invoice Date,Due Date,Total,Currency,Supplier,PO Number
+INV-1001,07/02/2026,08/01/2026,250.00,USD,Acme Office Supply Inc.,PO-88
+INV-1002,2026-07-05,2026-08-04,1180.00,USD,Globex Media,PO-91
+INV-1003,July 9 2026,,89.99,USD,ACME OFFICE SUPPLY CO,
+INV-1004,2026-07-10,Aug 9 2026,4500.00,USD,Initech Consulting,PO-95
+INV-1005,14.07.2026,,742.50,USD,Umbrella Logistics,
+INV-1007,2026-07-18,,610.00,USD,Soylent Corporation,
+INV-1006,2026-07-21,,2300.00,USD,Cyberdyne Systems,PO-99

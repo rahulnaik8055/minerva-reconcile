@@ -1,0 +1,10 @@
+Payout Id,Payout Date,Provider,Currency,Type,Description,Amount,Payment Reference
+PAYOUT-8891,2026-07-23,Stripe,USD,sale,Card payment INV-1007,610.00,INV-1007
+PAYOUT-8891,2026-07-23,Stripe,USD,sale,Card payment,480.00,
+PAYOUT-8891,2026-07-23,Stripe,USD,refund,Partial refund,-75.00,INV-1007
+PAYOUT-8891,2026-07-23,Stripe,USD,fee,Processing fees,-167.55,
+PAYOUT-8891,2026-07-23,Stripe,USD,fee,Dispute fee,-15.00,
+PAYOUT-8891,2026-07-23,Stripe,USD,deduction,Chargeback,-48.00,
+PAYOUT-8892,07/29/2026,Stripe,USD,sale,Card payment,250.00,
+PAYOUT-8892,07/29/2026,Stripe,USD,fee,Processing fees,-7.28,
+PAYOUT-8892,07/29/2026,Stripe,USD,reserve,Rolling reserve hold,-25.00,
