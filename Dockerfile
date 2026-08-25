@@ -36,4 +36,4 @@ COPY apps/backend/drizzle ./apps/backend/drizzle
 RUN npm install drizzle-kit --no-save
 
 EXPOSE 3001
-CMD ["sh", "-c", "npx drizzle-kit push --config=apps/backend/drizzle.config.ts && node apps/backend/dist/main.js"]
+CMD ["sh", "-c", "cd apps/backend && npx drizzle-kit push && cd /app && node apps/backend/dist/main.js"]
