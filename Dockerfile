@@ -27,5 +27,13 @@ COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/backend/package.json ./apps/backend/package.json
 
+# Copy Drizzle config, schema, and migrations for runtime db push
+COPY apps/backend/drizzle.config.ts ./apps/backend/drizzle.config.ts
+COPY apps/backend/src/database/schema ./apps/backend/src/database/schema
+COPY apps/backend/drizzle ./apps/backend/drizzle
+
+# Install drizzle-kit for runtime migrations
+RUN npm install drizzle-kit --no-save
+
 EXPOSE 3001
-CMD ["node", "apps/backend/dist/main.js"]
+CMD ["sh", "-c", "npx drizzle-kit push --config=apps/backend/drizzle.config.ts && node apps/backend/dist/main.js"]
