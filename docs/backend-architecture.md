@@ -58,6 +58,28 @@ Owns user persistence and the `toPublicUser` mapper (strips the password hash).
 `GET /api/v1/health` - public liveness probe returning service, version, status
 and timestamp.
 
+### `reconciliation`
+Core domain module. Sub-modules:
+- **domain/** - Deterministic matching engine (`engine.ts`), signal scoring
+  (`signals.ts`), settlement reconciliation (`settlements/`), and append-only
+  audit chain (`audit/`).
+- **review/** - REST controller for the reconciliation worklist: list/filter
+  proposals, approve/reject/override decisions, list exceptions, fetch record
+  details, and generate activity feed with chain verification.
+- **ai/** - AI provider integration (optional). When `AICREDITS_API_KEY` is set,
+  generates AI-drafted explanations for ambiguous matches and settlement
+  exceptions. Always advisory — never modifies records.
+
+### `imports`
+CSV import pipeline. Accepts bank transactions, ledger entries, invoices, and
+settlement lines via multipart upload. Each file is hashed, validated row-by-row
+with Zod schemas, normalized, and inserted immutably.
+
+### `demo`
+Demo data seeding. Replaces all reconciliation data with a deterministic
+synthetic dataset, then runs the real matching engine so every proposal, score,
+and evidence item is produced by the same pipeline as a CSV import.
+
 ## Adding a new module
 
 1. Create `src/modules/<feature>/` with controller, service, module and DTOs.

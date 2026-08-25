@@ -36,8 +36,139 @@ Timestamps are UTC (`timestamptz`).
 | `created_at`   | timestamptz   | default now              |
 | `updated_at`   | timestamptz   | default now              |
 
-Add new tables here as your product grows. Follow the same conventions:
-UUID primary keys, snake_case columns, and UTC timestamps.
+### `bank_transactions`
+
+| Column              | Type          | Notes                         |
+| ------------------- | ------------- | ----------------------------- |
+| `id`                | uuid          | PK                            |
+| `import_id`         | uuid          | FK → imports                  |
+| `external_reference`| varchar(255)  | bank reference number         |
+| `posted_at`         | timestamptz   | not null                      |
+| `amount_cents`      | integer       | not null                      |
+| `currency`          | varchar(3)    | default 'USD'                 |
+| `description`       | text          | not null                      |
+| `normalized_vendor` | varchar(255)  | normalized vendor name        |
+| `source_row`        | integer       | CSV source row number         |
+
+### `ledger_entries`
+
+| Column              | Type          | Notes                         |
+| ------------------- | ------------- | ----------------------------- |
+| `id`                | uuid          | PK                            |
+| `import_id`         | uuid          | FK → imports                  |
+| `external_reference`| varchar(255)  | GL reference                  |
+| `posted_at`         | timestamptz   | not null                      |
+| `amount_cents`      | integer       | not null                      |
+| `currency`          | varchar(3)    | default 'USD'                 |
+| `account_code`      | varchar(50)   | not null                      |
+| `account_name`      | varchar(255)  | not null                      |
+| `description`       | text          | not null                      |
+| `normalized_vendor` | varchar(255)  | normalized vendor name        |
+| `source_row`        | integer       | CSV source row number         |
+
+### `invoices`
+
+| Column              | Type          | Notes                         |
+| ------------------- | ------------- | ----------------------------- |
+| `id`                | uuid          | PK                            |
+| `import_id`         | uuid          | FK → imports                  |
+| `invoice_number`    | varchar(255)  | not null                      |
+| `vendor`            | varchar(255)  | not null                      |
+| `normalized_vendor` | varchar(255)  | normalized vendor name        |
+| `issued_at`         | timestamptz   | not null                      |
+| `due_at`            | timestamptz   | nullable                      |
+| `amount_cents`      | integer       | not null                      |
+| `currency`          | varchar(3)    | default 'USD'                 |
+| `reference`         | varchar(255)  | nullable                      |
+| `source_row`        | integer       | CSV source row number         |
+
+### `settlements`
+
+| Column                 | Type          | Notes                        |
+| ---------------------- | ------------- | ---------------------------- |
+| `id`                   | uuid          | PK                           |
+| `import_id`            | uuid          | FK → imports                 |
+| `provider`             | varchar(255)  | not null                     |
+| `settlement_reference` | varchar(255)  | nullable                     |
+| `settlement_date`      | timestamptz   | not null                     |
+| `currency`             | varchar(3)    | default 'USD'                |
+| `gross_amount_cents`   | integer       | not null                     |
+| `fees_cents`           | integer       | not null                     |
+| `refunds_cents`        | integer       | not null                     |
+| `deductions_cents`     | integer       | not null                     |
+| `adjustments_cents`    | integer       | not null                     |
+| `expected_net_cents`   | integer       | not null                     |
+| `source_row`           | integer       | CSV source row number        |
+
+### `settlement_lines`
+
+| Column          | Type          | Notes                         |
+| --------------- | ------------- | ----------------------------- |
+| `id`            | uuid          | PK                            |
+| `settlement_id` | uuid          | FK → settlements              |
+| `type`          | varchar(50)   | e.g. sale, fee, refund        |
+| `description`   | text          | not null                      |
+| `amount_cents`  | integer       | not null                      |
+| `reference`     | varchar(255)  | nullable                      |
+| `source_row`    | integer       | CSV source row number         |
+
+### `proposals`
+
+| Column           | Type          | Notes                          |
+| ---------------- | ------------- | ------------------------------ |
+| `id`             | uuid          | PK                             |
+| `status`         | varchar(20)   | pending / accepted / rejected  |
+| `method`         | varchar(50)   | engine_match / manual          |
+| `score`          | real          | confidence 0..1                |
+| `rationale_json` | jsonb         | engine rationale or override   |
+| `created_at`     | timestamptz   | default now                    |
+| `decided_at`     | timestamptz   | nullable                       |
+| `decided_by`     | varchar(255)  | nullable, actor email          |
+| `superseded_by`  | uuid          | FK → proposals, nullable       |
+
+### `proposal_links`
+
+| Column        | Type          | Notes                           |
+| ------------- | ------------- | ------------------------------- |
+| `proposal_id` | uuid          | FK → proposals                  |
+| `source_type` | varchar(50)   | bank_transaction, ledger_entry, etc. |
+| `record_id`   | uuid          | FK to the source table          |
+
+### `evidence`
+
+| Column         | Type          | Notes                           |
+| -------------- | ------------- | ------------------------------- |
+| `id`           | uuid          | PK                              |
+| `proposal_id`  | uuid          | FK → proposals                  |
+| `source_type`  | varchar(50)   | source record type              |
+| `source_id`    | uuid          | source record id                |
+| `evidence_type`| varchar(50)   | e.g. amount_match, date_proximity |
+| `detail`       | text          | human-readable evidence detail  |
+
+### `activity_log`
+
+| Column         | Type          | Notes                           |
+| -------------- | ------------- | ------------------------------- |
+| `id`           | uuid          | PK                              |
+| `timestamp`    | timestamptz   | default now                     |
+| `actor`        | varchar(255)  | user email                      |
+| `action`       | varchar(64)   | e.g. proposal.approved          |
+| `entity_type`  | varchar(50)   | e.g. proposal                   |
+| `entity_id`    | uuid          | ID of the affected entity       |
+| `payload_json` | jsonb         | previous/new state, reason      |
+| `previous_hash`| varchar(128)  | hash of previous entry          |
+| `hash`         | varchar(128)  | SHA-256 of this entry           |
+
+### `imports`
+
+| Column      | Type          | Notes                           |
+| ----------- | ------------- | ------------------------------- |
+| `id`        | uuid          | PK                              |
+| `filename`  | varchar(255)  | original CSV filename           |
+| `type`      | varchar(50)   | bank, ledger, invoice, settlement |
+| `row_count` | integer       | total rows in file              |
+| `hash`      | varchar(128)  | SHA-256 of file content         |
+| `created_at`| timestamptz   | default now                     |
 
 ## Migrations
 

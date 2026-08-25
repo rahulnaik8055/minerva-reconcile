@@ -243,6 +243,25 @@ export interface OverrideResult {
   activity: ActivityEntry[];
 }
 
+export interface AiEvidenceRef {
+  ref: string;
+  label: string;
+}
+
+export interface AiExplanation {
+  recommendation: string;
+  confidence: number;
+  reasoning: string;
+  supportingEvidence: AiEvidenceRef[];
+  contradictingEvidence: AiEvidenceRef[];
+  recommendedAction: string;
+}
+
+export interface AiStatus {
+  available: boolean;
+  model: string | null;
+}
+
 export interface ImportSummary {
   filename: string;
   type: string;

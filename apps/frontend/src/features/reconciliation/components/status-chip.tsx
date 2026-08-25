@@ -19,13 +19,23 @@ export function StatusChip({ status, className }: { status: WorklistItemStatus; 
   );
 }
 
+const OUTCOME_LABELS: Record<string, string> = {
+  exact_settlement_match: 'Exact match',
+  short_pay: 'Short-pay',
+  missing_settlement: 'Missing settlement',
+  unexplained_variance: 'Unexplained variance',
+  fee_variance: 'Fee variance',
+  refund: 'Refund',
+  excess_payment: 'Excess payment',
+};
+
 export function OutcomeChip({ outcome, className }: { outcome: string; className?: string }) {
   const neutral = outcome === 'exact_settlement_match';
   const negative = ['short_pay', 'missing_settlement', 'unexplained_variance'].includes(outcome);
 
   return (
-    <Badge tone={neutral ? 'success' : negative ? 'danger' : 'info'} className={cn('font-mono text-meta tracking-tight', className)}>
-      {outcome}
+    <Badge tone={neutral ? 'success' : negative ? 'danger' : 'info'} className={cn('text-meta tracking-tight', className)}>
+      {OUTCOME_LABELS[outcome] ?? outcome}
     </Badge>
   );
 }
@@ -37,6 +47,7 @@ export function ConfidenceBar({ score, className }: { score: number | null; clas
 
   const percent = Math.round(score * 100);
   const tone = percent >= 90 ? 'bg-success' : percent >= 60 ? 'bg-warning' : 'bg-border-strong';
+  const label = percent >= 90 ? 'Strong' : percent >= 60 ? 'Review' : 'Weak';
 
   return (
     <span className={cn('inline-flex items-center gap-2', className)}>
@@ -44,6 +55,7 @@ export function ConfidenceBar({ score, className }: { score: number | null; clas
         <span className={`block h-full ${tone}`} style={{ width: `${percent}%` }} />
       </span>
       <span className="tabular text-meta font-medium text-foreground">{percent}%</span>
+      <span className="text-meta text-foreground-muted">{label}</span>
     </span>
   );
 }

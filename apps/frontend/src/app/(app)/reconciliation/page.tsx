@@ -81,7 +81,7 @@ export default function ReconciliationPage() {
 
           {data ? (
             <p className="hidden pb-2 tabular text-meta text-foreground-muted sm:block">
-              {data.total.toLocaleString()} rows · page {data.page} of {data.totalPages}
+              {data.total.toLocaleString()} rows
             </p>
           ) : null}
         </div>
@@ -171,7 +171,7 @@ export default function ReconciliationPage() {
                           Review
                         </Link>
                       ) : item.bestMatch ? (
-                        <span className="text-meta italic text-foreground-muted">no proposal</span>
+                        <span className="text-meta text-foreground-muted">No proposal</span>
                       ) : (
                         <span className="text-meta text-foreground-muted/60">—</span>
                       )}

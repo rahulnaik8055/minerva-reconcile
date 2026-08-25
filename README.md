@@ -23,7 +23,7 @@ reviewed reconciliation report.
 
 ```
 apps/
-├── backend/    NestJS API under /api/v1 (modules: auth, users, health)
+├── backend/    NestJS API under /api/v1 (modules: auth, users, health, reconciliation, imports, demo)
 └── frontend/   Next.js app (app router, feature-first organization)
 ```
 

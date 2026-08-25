@@ -8,7 +8,7 @@ import { Panel } from '@/components/ui/panel';
 import { Table, TableWrap, Td, Th } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { useActivity } from '@/features/reconciliation/hooks/use-review';
-import { formatDateTime, shortenHash } from '@/features/reconciliation/lib/format';
+import { formatDateTime } from '@/features/reconciliation/lib/format';
 import type { ChainVerification } from '@/features/reconciliation/types';
 
 function actionTone(action: string): 'success' | 'danger' | 'warning' | 'neutral' {
@@ -27,36 +27,43 @@ function actionTone(action: string): 'success' | 'danger' | 'warning' | 'neutral
   return 'neutral';
 }
 
+const ACTION_LABELS: Record<string, string> = {
+  'proposal.approved': 'Approved',
+  'proposal.rejected': 'Rejected',
+  'proposal.overridden': 'Overridden',
+  'proposal.created': 'Created',
+};
+
+const ENTITY_LABELS: Record<string, string> = {
+  proposal: 'Proposal',
+  bank_transaction: 'Bank transaction',
+  ledger_entry: 'Ledger entry',
+  invoice: 'Invoice',
+  settlement: 'Settlement',
+  settlement_line: 'Settlement line',
+  import: 'Import',
+};
+
 function ActionBadge({ action }: { action: string }) {
   return (
-    <Badge tone={actionTone(action)} className="font-mono tracking-tight">
-      {action}
+    <Badge tone={actionTone(action)} className="text-meta tracking-tight">
+      {ACTION_LABELS[action] ?? action}
     </Badge>
   );
 }
 
-function IntegrityCell({
-  status,
-  hash,
-}: {
-  status: 'verified' | 'unverified';
-  hash: string;
-}) {
+function IntegrityCell({ status }: { status: 'verified' | 'unverified' }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 whitespace-nowrap font-mono text-meta ${
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap text-meta ${
         status === 'verified' ? 'text-success-text' : 'text-danger-text'
       }`}
-      title={hash}
     >
       <span
         aria-hidden
         className={`inline-block h-1.5 w-1.5 rounded-full ${status === 'verified' ? 'bg-success' : 'bg-danger'}`}
       />
       {status === 'verified' ? 'Verified' : 'Unverified'}
-      <code className="rounded-sm bg-surface-muted px-1 py-0.5 text-foreground-muted">
-        {shortenHash(hash, 6)}
-      </code>
     </span>
   );
 }
@@ -185,7 +192,7 @@ export default function ActivityPage() {
             <option value="">Any</option>
             {entityTypes.map((type) => (
               <option key={type} value={type}>
-                {type.replace(/_/g, ' ')}
+                {ENTITY_LABELS[type] ?? type.replace(/_/g, ' ')}
               </option>
             ))}
           </select>
@@ -214,7 +221,7 @@ export default function ActivityPage() {
         </label>
 
         <span className="tabular ml-auto hidden text-meta text-foreground-muted sm:block">
-          {filtered.length} of {entries.length} entries · oldest first
+          {filtered.length} of {entries.length} entries
         </span>
 
         {filtersActive ? (
@@ -285,11 +292,11 @@ export default function ActivityPage() {
                             href={`/reconciliation/${entry.entityId}`}
                             className="underline-offset-2 hover:text-primary hover:underline"
                           >
-                            proposal ·{shortenHash(entry.entityId, 6)}
+                            {ENTITY_LABELS[entry.entityType] ?? entry.entityType} ·{entry.entityId.slice(0, 6)}
                           </Link>
                         ) : (
                           <>
-                            {entry.entityType} ·{shortenHash(entry.entityId, 6)}
+                            {ENTITY_LABELS[entry.entityType] ?? entry.entityType} ·{entry.entityId.slice(0, 6)}
                           </>
                         )}
                       </Td>
@@ -303,7 +310,7 @@ export default function ActivityPage() {
                         )}
                       </Td>
                       <Td>
-                        <IntegrityCell status={integrityStatusAt(index)} hash={entry.hash} />
+                        <IntegrityCell status={integrityStatusAt(index)} />
                       </Td>
                     </tr>
                   );

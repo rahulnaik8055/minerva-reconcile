@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { reviewService } from '../services/review.service';
-import type { WorklistFilter } from '../types';
+import type { AiExplanation, WorklistFilter } from '../types';
 
 export function useSummary() {
   return useQuery({ queryKey: ['review', 'summary'], queryFn: () => reviewService.getSummary() });
@@ -111,5 +111,26 @@ export function useOverrideProposal(id: string) {
       invalidate();
     },
     onError: (error: Error) => toast.error(error.message),
+  });
+}
+
+export function useAiStatus() {
+  return useQuery({
+    queryKey: ['review', 'ai-status'],
+    queryFn: () => reviewService.getAiStatus(),
+  });
+}
+
+export function useAiExplanation(proposalId: string) {
+  return useMutation<AiExplanation, Error>({
+    mutationFn: () => reviewService.explainProposal(proposalId),
+    onError: (error) => toast.error(error.message),
+  });
+}
+
+export function useAiExceptionSummary() {
+  return useMutation<AiExplanation, Error, string>({
+    mutationFn: (exceptionId: string) => reviewService.summarizeException(exceptionId),
+    onError: (error) => toast.error(error.message),
   });
 }

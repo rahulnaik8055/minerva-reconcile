@@ -38,12 +38,28 @@ export function FieldList({
 export function AiAssistNote({
   title = 'AI-assisted analysis',
   note = 'Verify against source evidence',
+  variant = 'advisory',
   className,
 }: {
   title?: string;
   note?: string;
+  variant?: 'advisory' | 'drafted';
   className?: string;
 }) {
+  if (variant === 'drafted') {
+    return (
+      <p
+        className={cn(
+          'inline-flex flex-wrap items-baseline gap-x-2 gap-y-0.5 rounded-sm border border-warning-border bg-warning-bg px-2 py-1',
+          className,
+        )}
+      >
+        <span className="text-label font-semibold uppercase text-warning-text">{title}</span>
+        <span className="text-meta text-foreground-muted">{note}</span>
+      </p>
+    );
+  }
+
   return (
     <p
       className={cn(

@@ -40,10 +40,11 @@ const user = await apiClient<User>('/auth/me');
 - On mount it calls `/auth/me`; a 401 results in an unauthenticated state
   rather than a crash.
 - `useAuth()` hook exposes the context to any client component.
-- `middleware.ts` protects `/dashboard/*` server-side by verifying the
+- `middleware.ts` protects `/overview`, `/reconciliation`, `/report`,
+  `/activity`, `/exceptions`, `/import` server-side by verifying the
   `reconcile_token` cookie with `jose` (HS256), redirecting to `/login`
   when invalid. Authenticated users visiting `/login` or `/register` are
-  redirected to `/dashboard`.
+  redirected to `/overview`.
 
 ## Adding a page
 

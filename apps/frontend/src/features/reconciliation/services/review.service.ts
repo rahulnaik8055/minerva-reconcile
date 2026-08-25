@@ -1,6 +1,8 @@
 import { apiClient } from '@/lib/api';
 import type {
   ActivityFeed,
+  AiExplanation,
+  AiStatus,
   CandidateOption,
   DecisionResult,
   ExceptionsResponse,
@@ -92,6 +94,18 @@ export const reviewService = {
 
   getRecord(sourceType: string, recordId: string): Promise<RecordDetail> {
     return apiClient<RecordDetail>(`/review/records/${sourceType}/${recordId}`);
+  },
+
+  getAiStatus(): Promise<AiStatus> {
+    return apiClient<AiStatus>('/review/ai/status');
+  },
+
+  explainProposal(id: string): Promise<AiExplanation> {
+    return apiClient<AiExplanation>(`/review/proposals/${id}/ai-explanation`, { method: 'POST' });
+  },
+
+  summarizeException(exceptionId: string): Promise<AiExplanation> {
+    return apiClient<AiExplanation>(`/review/exceptions/${exceptionId}/ai-summary`, { method: 'POST' });
   },
 
   getActivity(entityId?: string, limit = 100): Promise<ActivityFeed> {

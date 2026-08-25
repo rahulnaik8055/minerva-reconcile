@@ -14,17 +14,6 @@ import {
 import { formatCents, formatDate, formatDateTime } from '@/features/reconciliation/lib/format';
 import { StatusChip, OutcomeChip } from '@/features/reconciliation/components/status-chip';
 
-function ShortHash({ hash }: { hash: string }) {
-  return (
-    <code
-      className="rounded-sm bg-surface-muted px-1 py-0.5 font-mono text-meta text-foreground-muted"
-      title={hash}
-    >
-      {hash.slice(0, 10)}…
-    </code>
-  );
-}
-
 export default function OverviewPage() {
   const worklist = useWorklist('all', 1, 8);
   const activity = useActivity(undefined, 6);
@@ -123,15 +112,11 @@ export default function OverviewPage() {
             }
           />
 
-          {activity.data && !activity.data.verification.valid ? (
-            <p className="mx-3 mt-3 rounded-sm border border-danger-border bg-danger-bg px-3 py-2 text-meta font-medium text-danger-text">
-              Audit chain verification failed — the log may have been tampered with.
-            </p>
-          ) : (
-            <p className="mx-3 mt-3 rounded-sm border border-success-border bg-success-bg px-3 py-2 text-meta font-medium text-success-text">
-              Audit chain verified ({activity.data?.verification.checkedCount ?? 0} entries).
-            </p>
-          )}
+          <p className="mx-3 mt-3 rounded-sm border px-3 py-2 text-meta font-medium border-success-border bg-success-bg text-success-text">
+            {activity.data?.verification.valid
+              ? `Audit chain verified · ${activity.data?.verification.checkedCount ?? 0} entries`
+              : 'Audit chain broken — investigate in Activity'}
+          </p>
 
           <ul className="divide-y divide-border/60 p-3">
             {(activity.data?.entries ?? [])
@@ -141,13 +126,12 @@ export default function OverviewPage() {
               .map((entry) => (
                 <li key={entry.id} className="py-2 first:pt-0 last:pb-0">
                   <p className="text-secondary font-medium text-foreground">{entry.action}</p>
-                  <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-meta text-foreground-muted">
-                    {entry.actor} · {formatDateTime(entry.timestamp)} ·{' '}
-                    <ShortHash hash={entry.hash} />
+                  <p className="mt-0.5 text-meta text-foreground-muted">
+                    {entry.actor} · {formatDateTime(entry.timestamp)}
                   </p>
                   {entry.payload?.reason ? (
                     <p className="mt-0.5 truncate text-meta italic text-foreground-muted">
-                      “{String(entry.payload.reason)}”
+                      "{String(entry.payload.reason)}"
                     </p>
                   ) : null}
                 </li>

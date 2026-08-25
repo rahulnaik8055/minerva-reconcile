@@ -3,14 +3,16 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { Sparkles } from 'lucide-react';
 import { EmptyState } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
-import { AiAssistNote, FieldList, Num } from '@/components/ui/data';
+import { FieldList, Num, AiAssistNote } from '@/components/ui/data';
 import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { StatusChip, ConfidenceBar } from '@/features/reconciliation/components/status-chip';
 import {
+  useAiExplanation,
   useApproveProposal,
   useCandidates,
   useOverrideProposal,
@@ -18,7 +20,7 @@ import {
   useRejectProposal,
 } from '@/features/reconciliation/hooks/use-review';
 import { formatCents, formatDate, formatPercent } from '@/features/reconciliation/lib/format';
-import type { ProposalDetail, HydratedSource } from '@/features/reconciliation/types';
+import type { AiExplanation, ProposalDetail, HydratedSource } from '@/features/reconciliation/types';
 
 interface RationaleFeature {
   name: string;
@@ -30,6 +32,18 @@ interface RationaleFeature {
 type Rationale =
   | { type?: string; summary?: string; reason?: string; features?: RationaleFeature[]; ambiguous?: boolean }
   | null;
+
+const METHOD_LABELS: Record<string, string> = {
+  engine_match: 'Automatic match',
+  manual: 'Manual proposal',
+};
+
+const SOURCE_TYPE_LABELS: Record<string, string> = {
+  bank_transaction: 'Bank transaction',
+  ledger_entry: 'Ledger entry',
+  invoice: 'Invoice',
+  settlement: 'Settlement',
+};
 
 function SourcePanel({
   label,
@@ -44,8 +58,8 @@ function SourcePanel({
         title={label}
         aside={
           source ? (
-            <span className="font-mono text-meta uppercase tracking-wide text-foreground-muted/80">
-              {source.sourceType.replace('_', ' ')}
+            <span className="text-meta font-medium text-foreground-muted">
+              {SOURCE_TYPE_LABELS[source.sourceType] ?? source.sourceType}
             </span>
           ) : undefined
         }
@@ -114,10 +128,10 @@ function SignalRow({ feature }: { feature: RationaleFeature }) {
         {matched ? '✓' : '✕'}
       </span>
       <div className="min-w-0">
-        <p className="text-secondary font-medium capitalize text-foreground">
+        <p className="text-secondary font-medium text-foreground">
           {feature.name}
-          <span className="ml-2 font-mono text-meta font-normal uppercase tracking-wide text-foreground-muted/80">
-            {feature.tier} · {formatPercent(feature.score)}
+          <span className="ml-2 text-meta font-normal text-foreground-muted">
+            {feature.tier.replace(/_/g, ' ')} · {formatPercent(feature.score)}
           </span>
         </p>
         <p className="text-meta text-foreground-muted">{feature.detail}</p>
@@ -134,8 +148,14 @@ function RationalePanel({ score, rationale }: { score: number; rationale: unknow
     <Panel>
       <PanelHeader
         title="Match rationale"
-        aside={<ConfidenceBar score={score} />}
-        actions={<AiAssistNote />}
+        aside={
+          <span className="flex items-center gap-2">
+            <span className="rounded-sm bg-surface-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-foreground-muted ring-1 ring-inset ring-border">
+              Engine score
+            </span>
+            <ConfidenceBar score={score} />
+          </span>
+        }
       />
 
       <PanelBody className="space-y-3">
@@ -172,12 +192,14 @@ function RationalePanel({ score, rationale }: { score: number; rationale: unknow
 }
 
 function EvidenceSection({
-  sources,
   entries,
 }: {
-  sources: Array<HydratedSource | undefined>;
   entries: ProposalDetail['evidence'];
 }) {
+  if (entries.length === 0) {
+    return null;
+  }
+
   return (
     <Panel>
       <PanelHeader
@@ -185,41 +207,149 @@ function EvidenceSection({
         aside={<span className="text-meta text-foreground-muted">Source provenance</span>}
       />
 
-      <div className="grid grid-cols-1 divide-y divide-border md:grid-cols-2 md:divide-x md:divide-y-0">
-        {sources.map((source, index) => (
-          <div key={index} className="min-h-20 p-4">
-            {source ? (
-              <>
-                <p className="font-mono text-meta uppercase tracking-wide text-foreground-muted/80">
-                  {source.importFilename ?? 'unknown file'} · row #{source.sourceRow ?? '?'}
-                </p>
-                <div className="mt-2 space-y-1 text-secondary">
-                  <p className="font-medium text-foreground">{source.vendor ?? '—'}</p>
-                  <p className="tabular text-foreground">
-                    {formatCents(source.amountCents, source.currency ?? 'USD')} · {formatDate(source.date)}
-                  </p>
-                  <p className="text-foreground-muted">{source.reference ?? source.description ?? 'No reference'}</p>
-                </div>
-              </>
-            ) : (
-              <p className="text-secondary text-foreground-muted">No record on this side.</p>
-            )}
-          </div>
+      <ul className="divide-y divide-border/60">
+        {entries.map((entry) => (
+          <li key={entry.id} className="flex items-start gap-3 px-4 py-2">
+            <span className="mt-0.5 shrink-0 rounded-sm bg-surface-muted px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-foreground-muted ring-1 ring-inset ring-border">
+              {entry.evidenceType.replace(/_/g, ' ')}
+            </span>
+            <p className="text-secondary text-foreground">{entry.detail}</p>
+          </li>
         ))}
-      </div>
+      </ul>
+    </Panel>
+  );
+}
 
-      {entries.length > 0 ? (
-        <ul className="divide-y divide-border/60 border-t border-border">
-          {entries.map((entry) => (
-            <li key={entry.id} className="flex items-start gap-3 px-4 py-2">
-              <span className="mt-0.5 shrink-0 rounded-sm bg-surface-muted px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-foreground-muted ring-1 ring-inset ring-border">
-                {entry.evidenceType}
+function RecommendedActionBadge({ action }: { action: string }) {
+  const LABELS: Record<string, string> = {
+    approve: 'Approve',
+    reject: 'Reject',
+    override: 'Override',
+    investigate_further: 'Investigate further',
+    escalate_to_provider: 'Escalate to provider',
+  };
+
+  const TONES: Record<string, string> = {
+    approve: 'success',
+    reject: 'danger',
+    override: 'warning',
+    investigate_further: 'info',
+    escalate_to_provider: 'warning',
+  };
+
+  const tone = TONES[action] ?? 'default';
+
+  return (
+    <span
+      className={`inline-flex items-center rounded-sm px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ring-1 ring-inset ${
+        tone === 'success'
+          ? 'bg-success-bg text-success-text ring-success-border'
+          : tone === 'danger'
+            ? 'bg-danger-bg text-danger-text ring-danger-border'
+            : tone === 'warning'
+              ? 'bg-warning-bg text-warning-text ring-warning-border'
+              : tone === 'info'
+                ? 'bg-info-bg text-info-text ring-info-border'
+                : 'bg-surface-muted text-foreground-muted ring-border'
+      }`}
+    >
+      {LABELS[action] ?? action}
+    </span>
+  );
+}
+
+function AiExplanationPanel({
+  proposalId,
+  isPending,
+}: {
+  proposalId: string;
+  isPending: boolean;
+}) {
+  const ai = useAiExplanation(proposalId);
+  const data = ai.data as AiExplanation | undefined;
+
+  return (
+    <Panel>
+      <PanelHeader
+        title="AI analysis"
+        aside={
+          ai.data ? (
+            <AiAssistNote
+              variant="drafted"
+              title="AI-drafted"
+              note="Pending your review"
+              className="border-0 bg-transparent p-0"
+            />
+          ) : (
+            <span className="text-meta text-foreground-muted">Advisory only</span>
+          )
+        }
+      />
+
+      <PanelBody className="space-y-3">
+        {!ai.data && !ai.isPending ? (
+          <Button
+            variant="outline"
+            disabled={ai.isPending}
+            onClick={() => ai.mutate()}
+          >
+            <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+            Get AI analysis
+          </Button>
+        ) : ai.isPending ? (
+          <p className="text-secondary italic text-foreground-muted" aria-busy>
+            Analyzing…
+          </p>
+        ) : ai.data ? (
+          <>
+            <div className="flex flex-wrap items-center gap-2">
+              <RecommendedActionBadge action={data!.recommendedAction} />
+              <span className="text-meta text-foreground-muted">
+                AI confidence {formatPercent(data!.confidence)}
               </span>
-              <p className="text-secondary text-foreground">{entry.detail}</p>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+            </div>
+
+            <p className="text-secondary leading-relaxed text-foreground">
+              {data!.recommendation}
+            </p>
+
+            {data!.reasoning ? (
+              <blockquote className="border-l-2 border-info-border pl-3 text-secondary leading-relaxed text-foreground-muted">
+                {data!.reasoning}
+              </blockquote>
+            ) : null}
+
+            {data!.supportingEvidence.length > 0 ? (
+              <div>
+                <p className="text-label font-semibold uppercase text-foreground-muted">Supporting</p>
+                <ul className="mt-1 space-y-0.5">
+                  {data!.supportingEvidence.map((ref) => (
+                    <li key={ref.ref} className="text-secondary text-foreground">
+                      <span className="font-mono text-meta text-foreground-muted">{ref.ref}</span>{' '}
+                      {ref.label}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {data!.contradictingEvidence.length > 0 ? (
+              <div>
+                <p className="text-label font-semibold uppercase text-foreground-muted">Contradicting</p>
+                <ul className="mt-1 space-y-0.5">
+                  {data!.contradictingEvidence.map((ref) => (
+                    <li key={ref.ref} className="text-secondary text-foreground">
+                      <span className="font-mono text-meta text-foreground-muted">{ref.ref}</span>{' '}
+                      {ref.label}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </>
+        ) : null}
+      </PanelBody>
     </Panel>
   );
 }
@@ -454,8 +584,8 @@ export default function ProposalReviewPage() {
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <StatusChip status={data.status as 'pending' | 'accepted' | 'rejected'} />
-            <span className="font-mono text-meta uppercase tracking-wide text-foreground-muted/80">
-              {data.method}
+            <span className="text-meta font-medium text-foreground-muted">
+              {METHOD_LABELS[data.method] ?? data.method}
             </span>
             {data.supersededBy ? <Badge tone="warning">superseded</Badge> : null}
           </div>
@@ -485,7 +615,9 @@ export default function ProposalReviewPage() {
 
       <RationalePanel score={data.score} rationale={data.rationale} />
 
-      <EvidenceSection sources={[bankSource, matchedSource]} entries={data.evidence} />
+      <AiExplanationPanel proposalId={id} isPending={data.status === 'pending'} />
+
+      <EvidenceSection entries={data.evidence} />
 
       <DecisionActions proposalId={id} mode={data.status === 'pending' ? 'full' : 'overrideOnly'} />
     </div>

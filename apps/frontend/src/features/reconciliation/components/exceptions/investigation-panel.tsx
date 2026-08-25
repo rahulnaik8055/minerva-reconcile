@@ -1,10 +1,13 @@
 'use client';
 
+import { Sparkles } from 'lucide-react';
 import Link from 'next/link';
-import { AiAssistNote, Num } from '@/components/ui/data';
+import { Num, AiAssistNote } from '@/components/ui/data';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PanelLabel } from '@/components/ui/panel';
 import { ConfidenceBar } from '../status-chip';
+import { useAiExceptionSummary } from '../../hooks/use-review';
 import {
   EXCEPTION_STATUS_LABELS,
   EXCEPTION_STATUS_TONE,
@@ -13,8 +16,18 @@ import {
   causeLabel,
   isSupportedCause,
 } from '../../lib/exception-meta';
-import { formatCents, formatDate, formatSignedCents } from '../../lib/format';
-import type { ExceptionItem, ExceptionRelatedRecord } from '../../types';
+import { formatCents, formatDate, formatPercent, formatSignedCents } from '../../lib/format';
+import type { AiExplanation, ExceptionItem, ExceptionRelatedRecord } from '../../types';
+
+const OUTCOME_LABELS: Record<string, string> = {
+  exact_settlement_match: 'Exact match',
+  short_pay: 'Short-pay',
+  missing_settlement: 'Missing settlement',
+  unexplained_variance: 'Unexplained variance',
+  fee_variance: 'Fee variance',
+  refund: 'Refund',
+  excess_payment: 'Excess payment',
+};
 
 function MoneyFigure({
   label,
@@ -62,10 +75,7 @@ function ExplanationBlock({ causes }: { causes: ExceptionItem['causes'] }) {
 
     return (
       <section className="rounded-sm border border-info-border bg-info-bg px-4 py-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <PanelLabel>Supported explanation</PanelLabel>
-          <AiAssistNote />
-        </div>
+        <PanelLabel>Supported explanation</PanelLabel>
 
         <div className="mt-3 space-y-2">
           <p className="flex flex-wrap items-baseline gap-x-3">
@@ -131,6 +141,9 @@ export function InvestigationPanel({
   item: ExceptionItem;
   onOpenRecord: (target: ExceptionRelatedRecord) => void;
 }) {
+  const ai = useAiExceptionSummary();
+  const aiData = ai.data as AiExplanation | undefined;
+
   const actualCents =
     item.settlement !== null && item.varianceCents !== null
       ? item.settlement.expectedNetCents + item.varianceCents
@@ -159,8 +172,8 @@ export function InvestigationPanel({
             {EXCEPTION_STATUS_LABELS[item.status]}
           </Badge>
           {item.outcome ? (
-            <span className="rounded-sm bg-surface-muted px-1.5 py-0.5 font-mono text-meta text-foreground-muted ring-1 ring-inset ring-border">
-              {item.outcome}
+            <span className="rounded-sm bg-surface-muted px-1.5 py-0.5 text-meta text-foreground-muted ring-1 ring-inset ring-border">
+              {OUTCOME_LABELS[item.outcome] ?? item.outcome.replace(/_/g, ' ')}
             </span>
           ) : null}
           {item.confidence !== null ? (
@@ -342,12 +355,87 @@ export function InvestigationPanel({
 
       {item.explanation ? (
         <section className="px-4 py-4 sm:px-5">
-          <PanelLabel>Reconciler summary</PanelLabel>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <PanelLabel>Reconciler summary</PanelLabel>
+            <span className="rounded-sm bg-surface-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-foreground-muted ring-1 ring-inset ring-border">
+              Rule-based
+            </span>
+          </div>
           <p className="mt-1.5 text-secondary italic leading-relaxed text-foreground-muted">
             {item.explanation}
           </p>
         </section>
       ) : null}
+
+      <section className="px-4 py-4 sm:px-5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <PanelLabel>AI summary</PanelLabel>
+            {aiData ? (
+              <AiAssistNote
+                variant="drafted"
+                title="AI-drafted"
+                note="Pending your review"
+                className="border-0 bg-transparent p-0"
+              />
+            ) : (
+              <span className="text-meta text-foreground-muted">Advisory only</span>
+            )}
+          </div>
+
+          {!aiData && !ai.isPending ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-2"
+              disabled={ai.isPending}
+              onClick={() => ai.mutate(item.id)}
+            >
+              <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+              Get AI summary
+            </Button>
+          ) : ai.isPending ? (
+            <p className="mt-2 text-secondary italic text-foreground-muted" aria-busy>
+              Analyzing…
+            </p>
+          ) : aiData ? (
+            <div className="mt-2 space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={`inline-flex items-center rounded-sm px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ring-1 ring-inset ${
+                    aiData.recommendedAction === 'approve'
+                      ? 'bg-success-bg text-success-text ring-success-border'
+                      : aiData.recommendedAction === 'reject'
+                        ? 'bg-danger-bg text-danger-text ring-danger-border'
+                        : 'bg-warning-bg text-warning-text ring-warning-border'
+                  }`}
+                >
+                  {aiData.recommendedAction === 'approve'
+                    ? 'Approve'
+                    : aiData.recommendedAction === 'reject'
+                      ? 'Reject'
+                      : aiData.recommendedAction === 'investigate_further'
+                        ? 'Investigate further'
+                        : aiData.recommendedAction === 'escalate_to_provider'
+                          ? 'Escalate'
+                          : aiData.recommendedAction}
+                </span>
+                <span className="text-meta text-foreground-muted">
+                  AI confidence {formatPercent(aiData.confidence)}
+                </span>
+              </div>
+
+              <p className="text-secondary leading-relaxed text-foreground">
+                {aiData.recommendation}
+              </p>
+
+              {aiData.reasoning ? (
+                <blockquote className="border-l-2 border-info-border pl-3 text-secondary leading-relaxed text-foreground-muted">
+                  {aiData.reasoning}
+                </blockquote>
+              ) : null}
+            </div>
+          ) : null}
+        </section>
 
       {item.proposalId ? (
         <section className="flex flex-wrap items-center justify-between gap-3 bg-surface-muted/60 px-4 py-3 sm:px-5">

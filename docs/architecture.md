@@ -25,7 +25,10 @@ Reconcile is a full-stack TypeScript monorepo managed with
                     ▼
 ┌─────────────────────────────────────────────┐
 │                PostgreSQL                    │
-│   users · (add your own tables)              │
+│   users · bank_transactions · ledger_entries  │
+│   invoices · settlements · settlement_lines   │
+│   proposals · proposal_links · evidence       │
+│   activity_log · imports                      │
 └─────────────────────────────────────────────┘
 ```
 
@@ -60,7 +63,8 @@ Reconcile is a full-stack TypeScript monorepo managed with
 1. Client component calls `apiClient(path, options)` in
    `src/lib/api.ts`, which sends `credentials: 'include'` cookies.
 2. The Next.js middleware (`src/middleware.ts`) runs on navigation to
-   protected pages (`/dashboard/*`) and auth pages (`/login`, `/register`),
+   protected pages (`/overview`, `/reconciliation`, `/report`, `/activity`,
+   `/exceptions`, `/import`) and auth pages (`/login`, `/register`),
    verifying the JWT server-side with `jose`.
 3. `AuthProvider` hydrates the current user on mount and exposes
    `login` / `register` / `logout` / `currentUser` via `useAuth`.

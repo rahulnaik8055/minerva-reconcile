@@ -163,19 +163,20 @@ function ExceptionRow({
           {formatCents(item.amountCents, item.currency)}
         </span>
 
-        {item.varianceCents !== null ? (
-          <span
-            className={`tabular block text-meta ${
-              item.varianceCents === 0 ? 'text-success-text' : 'text-danger-text'
-            }`}
-          >
-            {formatSignedCents(item.varianceCents, item.currency)}
-          </span>
-        ) : (
-          <Badge tone={EXCEPTION_STATUS_TONE[item.status]} className="mt-0.5 text-[10px]">
+        <span className="mt-0.5 flex items-center justify-end gap-1.5">
+          {item.varianceCents !== null ? (
+            <span
+              className={`tabular text-meta ${
+                item.varianceCents === 0 ? 'text-success-text' : 'text-danger-text'
+              }`}
+            >
+              {formatSignedCents(item.varianceCents, item.currency)}
+            </span>
+          ) : null}
+          <Badge tone={EXCEPTION_STATUS_TONE[item.status]} className="text-[10px]">
             {EXCEPTION_STATUS_LABELS[item.status]}
           </Badge>
-        )}
+        </span>
       </span>
     </button>
   );

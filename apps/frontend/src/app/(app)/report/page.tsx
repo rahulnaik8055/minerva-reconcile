@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Panel, PanelHeader } from '@/components/ui/panel';
 import { Table, TableWrap, Td, Th } from '@/components/ui/table';
-import { StatusChip, ConfidenceBar } from '@/features/reconciliation/components/status-chip';
+import { StatusChip } from '@/features/reconciliation/components/status-chip';
 import {
   EXCEPTION_TYPE_LABELS,
   EXCEPTION_TYPE_TONE,
@@ -42,11 +42,24 @@ export default function ReportPage() {
 
   const stats = s
     ? [
-        { label: 'Total transactions', value: String(s.totalBankTransactions) },
-        { label: 'Matched', value: String(s.accepted), tone: 'text-success-text' },
-        { label: 'Rejected', value: String(s.rejected), tone: 'text-danger-text' },
-        { label: 'Overridden', value: String(s.overridden), tone: 'text-warning-text' },
-        { label: 'Unmatched', value: String(s.unmatchedBankTransactions) },
+        {
+          label: 'Auto-matched',
+          value: String(s.accepted),
+          tone: 'text-success-text',
+          hint: 'Engine matched, approved by reviewer',
+        },
+        {
+          label: 'Human-decided',
+          value: String(s.rejected + s.overridden),
+          tone: 'text-warning-text',
+          hint: 'Rejected or overridden decisions',
+        },
+        {
+          label: 'Still open',
+          value: String(s.pending + s.unmatchedBankTransactions),
+          tone: s.pending + s.unmatchedBankTransactions > 0 ? 'text-danger-text' : undefined,
+          hint: 'Awaiting review or unmatched',
+        },
         {
           label: 'Unresolved value',
           value: formatCents(Number(s.unresolvedValueCents)),
@@ -121,6 +134,9 @@ export default function ReportPage() {
               <dd className={`tabular mt-1.5 font-serif text-lg leading-none tracking-tight ${stat.tone ?? 'text-foreground'}`}>
                 {stat.value}
               </dd>
+              {'hint' in stat && stat.hint ? (
+                <dd className="mt-1 text-meta text-foreground-muted">{stat.hint}</dd>
+              ) : null}
             </div>
           ))}
         </dl>
@@ -142,15 +158,13 @@ export default function ReportPage() {
           <PanelHeader title={`${decisions.length} reviewed decision${decisions.length === 1 ? '' : 's'}`} />
 
           <TableWrap>
-            <Table className="min-w-[52rem]">
+            <Table className="min-w-[36rem]">
               <thead>
                 <tr>
                   <Th>Bank transaction</Th>
                   <Th className="hidden md:table-cell">Matched record</Th>
                   <Th numeric>Amount</Th>
-                  <Th className="hidden xl:table-cell">Confidence</Th>
                   <Th>Status</Th>
-                  <Th className="hidden lg:table-cell">Rationale</Th>
                   <Th className="hidden lg:table-cell">Reviewer</Th>
                   <Th numeric className="hidden sm:table-cell">Reviewed at</Th>
                 </tr>
@@ -176,24 +190,8 @@ export default function ReportPage() {
                     <Td numeric className="whitespace-nowrap font-medium">
                       {formatCents(item.amountCents, item.currency)}
                     </Td>
-                    <Td className="hidden whitespace-nowrap xl:table-cell">
-                      {item.score !== null ? (
-                        <ConfidenceBar score={item.score} />
-                      ) : (
-                        <span className="text-foreground-muted/50">—</span>
-                      )}
-                    </Td>
                     <Td>
                       <StatusChip status={item.status === 'accepted' ? 'accepted' : 'rejected'} />
-                    </Td>
-                    <Td className="hidden max-w-56 lg:table-cell">
-                      {item.rationaleText ? (
-                        <span className="block truncate text-foreground-muted" title={item.rationaleText}>
-                          {item.rationaleText}
-                        </span>
-                      ) : (
-                        <span className="text-foreground-muted/50">—</span>
-                      )}
                     </Td>
                     <Td className="hidden max-w-36 truncate lg:table-cell" title={item.decidedBy ?? ''}>
                       {item.decidedBy ?? <span className="text-foreground-muted/50">—</span>}
@@ -294,10 +292,6 @@ export default function ReportPage() {
           ) : null}
         </Panel>
       ) : null}
-
-      <p className="text-meta text-foreground-muted">
-        Generated {new Date().toLocaleString()} · exports reflect persisted database state at time of export.
-      </p>
     </div>
   );
 }
