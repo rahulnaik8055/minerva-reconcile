@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/hooks/use-auth';
 import { useDemoStatus } from '@/features/reconciliation/hooks/use-demo';
+import { useAiStatus } from '@/features/reconciliation/hooks/use-review';
 
 const NAV_ITEMS = [
   { href: '/overview', label: 'Overview' },
@@ -39,7 +40,7 @@ function isActive(pathname: string, href: string): boolean {
 
 function Wordmark() {
   return (
-    <span className="font-serif text-base font-semibold tracking-tight text-foreground">
+    <span className="font-serif text-title font-semibold tracking-tight text-foreground">
       Reconcile
     </span>
   );
@@ -58,7 +59,7 @@ function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () 
             onClick={onNavigate}
             aria-current={active ? 'page' : undefined}
             className={cn(
-              'relative flex items-center justify-between rounded-sm px-3 py-1.5 text-meta text-sm',
+              'relative flex items-center justify-between rounded-sm px-3 py-1.5 text-meta',
               active
                 ? 'bg-surface-muted font-semibold text-foreground'
                 : 'font-medium text-foreground-muted hover:bg-surface-muted/70 hover:text-foreground',
@@ -104,6 +105,23 @@ function UserBlock({ onAfterSignOut }: { onAfterSignOut?: () => void }) {
       <Button variant="outline" size="sm" className="mt-2 w-full" onClick={handleLogout}>
         Sign out
       </Button>
+    </div>
+  );
+}
+
+function AiStatusIndicator() {
+  const { data: aiStatus } = useAiStatus();
+  const available = aiStatus?.available ?? false;
+
+  return (
+    <div className="mx-3 mb-2 rounded-sm border border-info-border/40 bg-info-bg/30 px-3 py-1.5">
+      <p className="flex items-center gap-1.5 text-meta font-medium text-info-text">
+        <span
+          aria-hidden
+          className={`inline-block h-1.5 w-1.5 rounded-full ${available ? 'bg-success' : 'bg-foreground-muted/40'}`}
+        />
+        {available ? 'AI assist available' : 'AI assist unavailable'}
+      </p>
     </div>
   );
 }
@@ -199,6 +217,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </p>
           <NavLinks pathname={pathname} />
         </div>
+
+        <AiStatusIndicator />
 
         <UserBlock />
       </aside>

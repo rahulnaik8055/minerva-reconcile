@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PanelLabel } from '@/components/ui/panel';
 import { ConfidenceBar } from '../status-chip';
-import { useAiExceptionSummary } from '../../hooks/use-review';
+import { useAiExceptionSummary, useAiStatus } from '../../hooks/use-review';
 import {
   EXCEPTION_STATUS_LABELS,
   EXCEPTION_STATUS_TONE,
@@ -54,7 +54,7 @@ function MoneyFigure({
       <p className="text-label font-semibold uppercase text-foreground-muted">{label}</p>
       <Num
         className={`mt-1 truncate font-serif tracking-tight ${
-          emphasis ? 'text-lg font-semibold sm:text-xl' : 'text-base font-medium'
+          emphasis ? 'text-title font-semibold' : 'text-body font-medium'
         } ${tone}`}
       >
         {cents === null ? '—' : formatCents(cents, currency)}
@@ -83,7 +83,7 @@ function ExplanationBlock({ causes }: { causes: ExceptionItem['causes'] }) {
               {causeLabel(primary.causeType)}
             </span>
             {primary.amountCents !== null ? (
-              <Num className="font-serif text-base font-semibold text-warning-text">
+              <Num className="font-serif text-body font-semibold text-warning-text">
                 {formatSignedCents(primary.amountCents)}
               </Num>
             ) : null}
@@ -143,6 +143,8 @@ export function InvestigationPanel({
 }) {
   const ai = useAiExceptionSummary();
   const aiData = ai.data as AiExplanation | undefined;
+  const { data: aiStatus } = useAiStatus();
+  const aiAvailable = aiStatus?.available ?? false;
 
   const actualCents =
     item.settlement !== null && item.varianceCents !== null
@@ -382,7 +384,11 @@ export function InvestigationPanel({
             )}
           </div>
 
-          {!aiData && !ai.isPending ? (
+          {!aiAvailable ? (
+            <p className="mt-2 text-secondary text-foreground-muted">
+              AI assist unavailable — configure the AI provider to enable advisory summaries.
+            </p>
+          ) : !aiData && !ai.isPending ? (
             <Button
               variant="outline"
               size="sm"
@@ -432,6 +438,34 @@ export function InvestigationPanel({
                 <blockquote className="border-l-2 border-info-border pl-3 text-secondary leading-relaxed text-foreground-muted">
                   {aiData.reasoning}
                 </blockquote>
+              ) : null}
+
+              {aiData.supportingEvidence.length > 0 ? (
+                <div>
+                  <p className="text-label font-semibold uppercase text-foreground-muted">Supporting</p>
+                  <ul className="mt-1 space-y-0.5">
+                    {aiData.supportingEvidence.map((ref) => (
+                      <li key={ref.ref} className="text-secondary text-foreground">
+                        <span className="font-mono text-meta text-foreground-muted">{ref.ref}</span>{' '}
+                        {ref.label}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {aiData.contradictingEvidence.length > 0 ? (
+                <div>
+                  <p className="text-label font-semibold uppercase text-foreground-muted">Contradicting</p>
+                  <ul className="mt-1 space-y-0.5">
+                    {aiData.contradictingEvidence.map((ref) => (
+                      <li key={ref.ref} className="text-secondary text-foreground">
+                        <span className="font-mono text-meta text-foreground-muted">{ref.ref}</span>{' '}
+                        {ref.label}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ) : null}
             </div>
           ) : null}

@@ -32,7 +32,7 @@ export function StatBlock({
       <dt className="text-label font-semibold uppercase text-foreground-muted">{label}</dt>
       <dd
         className={cn(
-          'tabular mt-1.5 font-serif text-lg leading-none tracking-tight',
+          'tabular mt-1.5 font-serif text-title leading-none tracking-tight',
           TONE_CLASSES[tone],
         )}
       >

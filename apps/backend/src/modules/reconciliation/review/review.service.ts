@@ -25,8 +25,6 @@ import { reconcileSettlements } from '../domain/settlements/settlement-reconcile
 import { formatMoney } from '../domain/settlements/money';
 import { normalizeReference } from '../../imports/lib/normalize';
 import {
-  AI_MAX_CONFIDENCE,
-  AI_MIN_CONFIDENCE,
   buildAiSystemPrompt,
   sanitizeAiExplanation,
 } from '../ai/ai-sanitize';
@@ -96,6 +94,7 @@ interface AppendActivityInput {
   previousState: unknown;
   newState: unknown;
   reason: string | null;
+  aiUsed?: boolean;
 }
 
 @Injectable()
@@ -180,6 +179,7 @@ export class ReviewService {
         previousState: { status: proposal.status },
         newState: { status: 'accepted' },
         reason: input.note ?? null,
+        aiUsed: input.aiUsed ?? false,
       });
 
       return { proposal: toProposalSummary(updated, []), activity: [toActivityDto(entry)] };
@@ -208,6 +208,7 @@ export class ReviewService {
         previousState: { status: proposal.status },
         newState: { status: 'rejected' },
         reason: input.reason,
+        aiUsed: input.aiUsed ?? false,
       });
 
       return { proposal: toProposalSummary(updated, []), activity: [toActivityDto(entry)] };
@@ -316,6 +317,7 @@ export class ReviewService {
             : null,
         },
         reason: input.reason,
+        aiUsed: input.aiUsed ?? false,
       });
 
       const creationEntry = await appendActivityEntry(tx, {
@@ -1319,6 +1321,7 @@ export class ReviewService {
                 }
               : null,
           evidenceCount: row.evidenceCount,
+          ambiguous: isAmbiguousRationale(row.proposal.rationaleJson),
         });
       }
     }
@@ -1352,6 +1355,7 @@ export class ReviewService {
         reference: bank.externalReference,
         bestMatch: null,
         evidenceCount: 0,
+        ambiguous: false,
       }));
     }
 
@@ -1533,20 +1537,6 @@ export class ReviewService {
       throw new NotFoundException(`Proposal ${id} was not found`);
     }
 
-    const rationale = proposal.rationaleJson as Record<string, unknown> | null;
-    const eligible =
-      rationale !== null &&
-      rationale['type'] === 'engine_match' &&
-      rationale['ambiguous'] === true &&
-      proposal.score >= AI_MIN_CONFIDENCE &&
-      proposal.score <= AI_MAX_CONFIDENCE;
-
-    if (!eligible) {
-      throw new BadRequestException(
-        `AI explanation is restricted to ambiguous proposals with confidence between ${AI_MIN_CONFIDENCE} and ${AI_MAX_CONFIDENCE}`,
-      );
-    }
-
     const [bankLink] = await this.database.db
       .select({ recordId: proposalLinks.recordId })
       .from(proposalLinks)
@@ -1614,12 +1604,12 @@ export class ReviewService {
     }
 
     const payload = {
-      task: 'explain_ambiguous_match',
+      task: 'explain_match',
       proposal: {
         id: proposal.id,
         method: proposal.method,
         score: proposal.score,
-        rationale,
+        rationale: proposal.rationaleJson,
       },
       bankTransaction: bankPayload,
       candidates: candidatePayload,
@@ -2174,6 +2164,14 @@ function rationaleTextOf(rationale: unknown): string | null {
   return null;
 }
 
+function isAmbiguousRationale(rationale: unknown): boolean {
+  if (rationale === null || typeof rationale !== 'object') {
+    return false;
+  }
+
+  return (rationale as Record<string, unknown>)['ambiguous'] === true;
+}
+
 function idsFor(
   grouped: Map<string, ProposalSourceDto[]>,
   sourceType: string,
@@ -2249,6 +2247,7 @@ async function appendActivityEntry(
     previousState: input.previousState,
     newState: input.newState,
     reason: input.reason,
+    aiUsed: input.aiUsed ?? false,
     timestamp: timestamp.toISOString(),
   };
 

@@ -21,13 +21,14 @@ import {
   downloadFile,
 } from '@/features/reconciliation/lib/report-export';
 import { formatCents, formatDate, formatSignedCents } from '@/features/reconciliation/lib/format';
-import { useExceptions, useSummary, useWorklist } from '@/features/reconciliation/hooks/use-review';
+import { useActivity, useExceptions, useSummary, useWorklist } from '@/features/reconciliation/hooks/use-review';
 
 export default function ReportPage() {
   const summary = useSummary();
   const accepted = useWorklist('accepted', 1, 100);
   const rejected = useWorklist('rejected', 1, 100);
   const exceptions = useExceptions();
+  const activity = useActivity(undefined, 500);
   const [showExceptions, setShowExceptions] = useState(true);
 
   const decisions = useMemo(
@@ -37,6 +38,27 @@ export default function ReportPage() {
         .sort((a, b) => ((a.decidedAt ?? '') < (b.decidedAt ?? '') ? 1 : -1)),
     [accepted.data, rejected.data],
   );
+
+  const aiAssistedCount = useMemo(() => {
+    if (!activity.data?.entries) return 0;
+    return activity.data.entries.filter(
+      (entry) =>
+        (entry.action === 'proposal.approved' ||
+          entry.action === 'proposal.rejected' ||
+          entry.action === 'proposal.overridden') &&
+        entry.payload?.aiUsed === true,
+    ).length;
+  }, [activity.data]);
+
+  const totalDecisions = useMemo(() => {
+    if (!activity.data?.entries) return 0;
+    return activity.data.entries.filter(
+      (entry) =>
+        entry.action === 'proposal.approved' ||
+        entry.action === 'proposal.rejected' ||
+        entry.action === 'proposal.overridden',
+    ).length;
+  }, [activity.data]);
 
   const s = summary.data;
 
@@ -55,6 +77,12 @@ export default function ReportPage() {
           hint: 'Rejected or overridden decisions',
         },
         {
+          label: 'AI-assisted',
+          value: totalDecisions > 0 ? `${aiAssistedCount} of ${totalDecisions}` : '0',
+          tone: 'text-info-text',
+          hint: 'Decisions with AI advisory review',
+        },
+        {
           label: 'Still open',
           value: String(s.pending + s.unmatchedBankTransactions),
           tone: s.pending + s.unmatchedBankTransactions > 0 ? 'text-danger-text' : undefined,
@@ -69,7 +97,7 @@ export default function ReportPage() {
     : [];
 
   const loading =
-    summary.isLoading || accepted.isLoading || rejected.isLoading || exceptions.isLoading;
+    summary.isLoading || accepted.isLoading || rejected.isLoading || exceptions.isLoading || activity.isLoading;
 
   function exportCsv(): void {
     if (decisions.length === 0) {
@@ -131,7 +159,7 @@ export default function ReportPage() {
           {stats.map((stat) => (
             <div key={stat.label} className="min-w-36 flex-1 border-l border-border px-4 py-3 first:border-l-0 sm:px-5">
               <dt className="text-label font-semibold uppercase text-foreground-muted">{stat.label}</dt>
-              <dd className={`tabular mt-1.5 font-serif text-lg leading-none tracking-tight ${stat.tone ?? 'text-foreground'}`}>
+              <dd className={`tabular mt-1.5 font-serif text-title leading-none tracking-tight ${stat.tone ?? 'text-foreground'}`}>
                 {stat.value}
               </dd>
               {'hint' in stat && stat.hint ? (
@@ -247,7 +275,7 @@ export default function ReportPage() {
                         </span>
                       </Td>
                       <Td numeric className="whitespace-nowrap">
-                        <span className="block font-medium">{formatCents(item.amountCents, item.currency)}</span>
+                        <span className="tabular block font-medium">{formatCents(item.amountCents, item.currency)}</span>
                         {item.varianceCents !== null ? (
                           <span
                             className={`tabular block text-meta ${

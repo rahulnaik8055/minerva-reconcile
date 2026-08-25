@@ -78,7 +78,8 @@ export function useApproveProposal(id: string) {
   const invalidate = useInvalidateReview();
 
   return useMutation({
-    mutationFn: (note?: string) => reviewService.approve(id, note),
+    mutationFn: ({ note, aiUsed }: { note?: string; aiUsed?: boolean } = {}) =>
+      reviewService.approve(id, note, aiUsed),
     onSuccess: () => {
       toast.success('Proposal approved');
       invalidate();
@@ -91,7 +92,8 @@ export function useRejectProposal(id: string) {
   const invalidate = useInvalidateReview();
 
   return useMutation({
-    mutationFn: (reason: string) => reviewService.reject(id, reason),
+    mutationFn: ({ reason, aiUsed }: { reason: string; aiUsed?: boolean }) =>
+      reviewService.reject(id, reason, aiUsed),
     onSuccess: () => {
       toast.success('Proposal rejected');
       invalidate();
@@ -104,8 +106,12 @@ export function useOverrideProposal(id: string) {
   const invalidate = useInvalidateReview();
 
   return useMutation({
-    mutationFn: (input: { reason: string; candidateSourceType?: string; candidateRecordId?: string }) =>
-      reviewService.override(id, input),
+    mutationFn: (input: {
+      reason: string;
+      candidateSourceType?: string;
+      candidateRecordId?: string;
+      aiUsed?: boolean;
+    }) => reviewService.override(id, input),
     onSuccess: () => {
       toast.success('Override recorded — new manual proposal created');
       invalidate();

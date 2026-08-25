@@ -18,7 +18,10 @@ export const aiExplanationModelSchema = z.object({
   reasoning: z.string().trim().min(1).max(4000),
   supportingEvidence: z.array(z.string().trim().min(1).max(200)).max(20).default([]),
   contradictingEvidence: z.array(z.string().trim().min(1).max(200)).max(20).default([]),
-  recommendedAction: z.enum(AI_RECOMMENDED_ACTIONS),
+  recommendedAction: z.preprocess(
+    (val) => (Array.isArray(val) ? val[0] : val),
+    z.enum(AI_RECOMMENDED_ACTIONS),
+  ),
 });
 
 export interface AllowedAiEvidenceRef {
@@ -101,7 +104,7 @@ export function buildAiSystemPrompt(): string {
     '  "reasoning": string,      // grounded strictly in the supplied fields; cite refs inline like [candidate:0]',
     '  "supportingEvidence": string[],       // refs that support the recommendation',
     '  "contradictingEvidence": string[],    // refs that cut against it',
-    `  "recommendedAction": ${JSON.stringify(AI_RECOMMENDED_ACTIONS)}`,
+    `  "recommendedAction": "${AI_RECOMMENDED_ACTIONS.join('" | "')}"  // exactly one string from this list, NOT an array`,
     '}',
   ].join('\n');
 }

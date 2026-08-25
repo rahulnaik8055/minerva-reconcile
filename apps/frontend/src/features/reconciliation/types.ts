@@ -32,6 +32,7 @@ export interface WorklistItem {
   reference: string | null;
   bestMatch: { sourceType: string; label: string } | null;
   evidenceCount: number;
+  ambiguous: boolean;
 }
 
 export interface WorklistPage {

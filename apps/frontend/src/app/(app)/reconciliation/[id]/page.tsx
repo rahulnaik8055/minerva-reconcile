@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Sparkles } from 'lucide-react';
@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { StatusChip, ConfidenceBar } from '@/features/reconciliation/components/status-chip';
 import {
   useAiExplanation,
+  useAiStatus,
   useApproveProposal,
   useCandidates,
   useOverrideProposal,
@@ -72,7 +73,7 @@ function SourcePanel({
       ) : (
         <PanelBody>
           <p className="truncate text-body font-medium text-foreground">{source.vendor ?? '—'}</p>
-          <Num className="mt-0.5 block font-serif text-lg font-semibold tracking-tight">
+          <Num className="mt-0.5 block font-serif text-title font-semibold tracking-tight">
             {formatCents(source.amountCents, source.currency ?? 'USD')}
           </Num>
 
@@ -262,12 +263,22 @@ function RecommendedActionBadge({ action }: { action: string }) {
 function AiExplanationPanel({
   proposalId,
   isPending,
+  onDataLoaded,
 }: {
   proposalId: string;
   isPending: boolean;
+  onDataLoaded?: () => void;
 }) {
   const ai = useAiExplanation(proposalId);
   const data = ai.data as AiExplanation | undefined;
+  const { data: aiStatus } = useAiStatus();
+  const aiAvailable = aiStatus?.available ?? false;
+
+  useEffect(() => {
+    if (ai.data && onDataLoaded) {
+      onDataLoaded();
+    }
+  }, [ai.data, onDataLoaded]);
 
   return (
     <Panel>
@@ -288,7 +299,11 @@ function AiExplanationPanel({
       />
 
       <PanelBody className="space-y-3">
-        {!ai.data && !ai.isPending ? (
+        {!aiAvailable ? (
+          <p className="text-secondary text-foreground-muted">
+            AI assist unavailable — configure the AI provider to enable advisory analysis.
+          </p>
+        ) : !ai.data && !ai.isPending ? (
           <Button
             variant="outline"
             disabled={ai.isPending}
@@ -357,9 +372,11 @@ function AiExplanationPanel({
 function DecisionActions({
   proposalId,
   mode,
+  aiUsed,
 }: {
   proposalId: string;
   mode: 'full' | 'overrideOnly';
+  aiUsed: boolean;
 }) {
   const [note, setNote] = useState('');
   const [rejectReason, setRejectReason] = useState('');
@@ -391,7 +408,7 @@ function DecisionActions({
               <Button
                 size="lg"
                 disabled={approve.isPending || override.isPending}
-                onClick={() => approve.mutate(note.trim() ? note.trim() : undefined)}
+                onClick={() => approve.mutate({ note: note.trim() || undefined, aiUsed })}
               >
                 Approve
               </Button>
@@ -453,7 +470,7 @@ function DecisionActions({
                 variant="destructive"
                 disabled={rejectReason.trim().length < 3 || reject.isPending}
                 onClick={() => {
-                  reject.mutate(rejectReason.trim(), {
+                  reject.mutate({ reason: rejectReason.trim(), aiUsed }, {
                     onSuccess: () => {
                       setRejectReason('');
                       setShowReject(false);
@@ -524,6 +541,7 @@ function DecisionActions({
                     {
                       reason: overrideReason.trim(),
                       ...(recordId ? { candidateSourceType: sourceType, candidateRecordId: recordId } : {}),
+                      aiUsed,
                     },
                     {
                       onSuccess: () => {
@@ -552,6 +570,7 @@ export default function ProposalReviewPage() {
   const params = useParams<{ id: string }>();
   const id = typeof params.id === 'string' ? params.id : '';
   const { data, isLoading, isError } = useProposal(id);
+  const [aiUsed, setAiUsed] = useState(false);
 
   if (isLoading) {
     return <p className="py-12 text-center text-secondary text-foreground-muted" aria-busy>Loading proposal…</p>;
@@ -615,11 +634,15 @@ export default function ProposalReviewPage() {
 
       <RationalePanel score={data.score} rationale={data.rationale} />
 
-      <AiExplanationPanel proposalId={id} isPending={data.status === 'pending'} />
+      <AiExplanationPanel
+        proposalId={id}
+        isPending={data.status === 'pending'}
+        onDataLoaded={() => setAiUsed(true)}
+      />
 
       <EvidenceSection entries={data.evidence} />
 
-      <DecisionActions proposalId={id} mode={data.status === 'pending' ? 'full' : 'overrideOnly'} />
+      <DecisionActions proposalId={id} mode={data.status === 'pending' ? 'full' : 'overrideOnly'} aiUsed={aiUsed} />
     </div>
   );
 }

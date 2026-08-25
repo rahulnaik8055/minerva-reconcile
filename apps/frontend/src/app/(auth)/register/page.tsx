@@ -10,7 +10,7 @@ export default function RegisterPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-sm">
-        <p className="mb-6 text-center font-serif text-base font-semibold tracking-tight text-foreground">
+        <p className="mb-6 text-center font-serif text-title font-semibold tracking-tight text-foreground">
           Reconcile
         </p>
 

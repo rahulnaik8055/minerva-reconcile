@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { PageHeader, EmptyState } from '@/components/layout/page-header';
 import { Badge, badgeDotClass } from '@/components/ui/badge';
 import { Panel, PanelLabel } from '@/components/ui/panel';
+import { StatBlock, StatRow } from '@/components/ui/stat';
 import { Input } from '@/components/ui/input';
 import {
   EXCEPTION_TYPE_LABELS,
@@ -86,17 +87,6 @@ function applyFilters(items: ExceptionItem[], filters: Filters): ExceptionItem[]
 
     return true;
   });
-}
-
-function StatusStat({ label, value, tone }: { label: string; value: number; tone?: string }) {
-  return (
-    <div className="min-w-[8.5rem] flex-1 border-l border-border px-4 py-3 first:border-l-0 sm:px-5">
-      <dt className="text-label font-semibold uppercase text-foreground-muted">{label}</dt>
-      <dd className={`tabular mt-1.5 font-serif text-lg leading-none tracking-tight ${tone ?? 'text-foreground'}`}>
-        {value}
-      </dd>
-    </div>
-  );
 }
 
 function FilterInput({
@@ -248,10 +238,10 @@ export default function ExceptionsPage() {
       />
 
       <dl className="flex flex-wrap overflow-hidden rounded-md border border-border bg-surface" data-testid="exceptions-summary">
-        <StatusStat label="Exceptions" value={items.length} />
-        <StatusStat label="Open" value={statusCounts.open} tone="text-danger-text" />
-        <StatusStat label="In review" value={statusCounts.inReview} tone="text-warning-text" />
-        <StatusStat label="Resolved" value={statusCounts.resolved} tone="text-success-text" />
+        <StatBlock label="Exceptions" value={items.length} />
+        <StatBlock label="Open" value={statusCounts.open} tone="danger" />
+        <StatBlock label="In review" value={statusCounts.inReview} tone="warning" />
+        <StatBlock label="Resolved" value={statusCounts.resolved} tone="success" />
       </dl>
 
       <Panel>

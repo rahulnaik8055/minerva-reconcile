@@ -477,15 +477,15 @@ describe('ReviewService (integration)', () => {
       expect(service.getAiStatus().model).toBe('test-model');
     });
 
-    it('refuses to explain proposals outside the ambiguous 0.60-0.89 band without calling the provider', async () => {
-      const providerSpy = jest.spyOn(aiProvider, 'completeJson');
+    it('explains any proposal regardless of score, not just ambiguous ones', async () => {
       process.env['AICREDITS_API_KEY'] = 'test-key';
       process.env['AICREDITS_MODEL'] = 'test-model';
+      const proposalId = await seedPendingProposal();
 
-      const highScoreId = await seedPendingProposal();
+      jest.spyOn(aiProvider, 'completeJson').mockResolvedValue(validModelOutput());
 
-      await expect(service.explainProposalWithAi(highScoreId)).rejects.toThrow(BadRequestException);
-      expect(providerSpy).not.toHaveBeenCalled();
+      const result = await service.explainProposalWithAi(proposalId);
+      expect(result.recommendation).toBeDefined();
     });
 
     it('explains an eligible ambiguous proposal, dropping evidence refs that were never supplied', async () => {

@@ -11,6 +11,7 @@ export const proposalIdParamSchema = z.string().uuid('proposalId must be a valid
 export const approveProposalSchema = z
   .object({
     note: z.string().trim().min(3, 'note must be at least 3 characters').max(2000).optional(),
+    aiUsed: z.boolean().optional(),
   })
   .strict();
 export type ApproveProposalInput = z.infer<typeof approveProposalSchema>;
@@ -18,6 +19,7 @@ export type ApproveProposalInput = z.infer<typeof approveProposalSchema>;
 export const rejectProposalSchema = z
   .object({
     reason: z.string().trim().min(3, 'reason must be at least 3 characters').max(2000),
+    aiUsed: z.boolean().optional(),
   })
   .strict();
 export type RejectProposalInput = z.infer<typeof rejectProposalSchema>;
@@ -28,7 +30,11 @@ const candidateSelection = {
 };
 
 export const overrideProposalSchema = z
-  .object({ reason: z.string().trim().min(3, 'reason must be at least 3 characters').max(2000), ...candidateSelection })
+  .object({
+    reason: z.string().trim().min(3, 'reason must be at least 3 characters').max(2000),
+    ...candidateSelection,
+    aiUsed: z.boolean().optional(),
+  })
   .strict()
   .refine(
     (value) => (value.candidateSourceType === undefined) === (value.candidateRecordId === undefined),
@@ -117,6 +123,7 @@ export interface WorklistItemDto {
   reference: string | null;
   bestMatch: { sourceType: string; label: string } | null;
   evidenceCount: number;
+  ambiguous: boolean;
 }
 
 export interface EvidenceEntryDto {

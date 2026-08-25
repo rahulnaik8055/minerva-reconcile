@@ -64,23 +64,23 @@ export const reviewService = {
     return apiClient<{ candidates: CandidateOption[] }>(`/review/proposals/${id}/candidates`);
   },
 
-  approve(id: string, note?: string): Promise<DecisionResult> {
+  approve(id: string, note?: string, aiUsed?: boolean): Promise<DecisionResult> {
     return apiClient<DecisionResult>(`/review/proposals/${id}/approve`, {
       method: 'POST',
-      body: JSON.stringify(note ? { note } : {}),
+      body: JSON.stringify({ ...(note ? { note } : {}), ...(aiUsed ? { aiUsed: true } : {}) }),
     });
   },
 
-  reject(id: string, reason: string): Promise<DecisionResult> {
+  reject(id: string, reason: string, aiUsed?: boolean): Promise<DecisionResult> {
     return apiClient<DecisionResult>(`/review/proposals/${id}/reject`, {
       method: 'POST',
-      body: JSON.stringify({ reason }),
+      body: JSON.stringify({ reason, ...(aiUsed ? { aiUsed: true } : {}) }),
     });
   },
 
   override(
     id: string,
-    input: { reason: string; candidateSourceType?: string; candidateRecordId?: string },
+    input: { reason: string; candidateSourceType?: string; candidateRecordId?: string; aiUsed?: boolean },
   ): Promise<OverrideResult> {
     return apiClient<OverrideResult>(`/review/proposals/${id}/override`, {
       method: 'POST',

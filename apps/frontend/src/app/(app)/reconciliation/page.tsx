@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { Sparkles } from 'lucide-react';
 import { PageHeader, EmptyState } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
 import { Panel } from '@/components/ui/panel';
@@ -130,6 +131,15 @@ export default function ReconciliationPage() {
                   >
                     <Td className="whitespace-nowrap">
                       <StatusChip status={item.status} />
+                      {item.ambiguous ? (
+                        <span
+                          className="ml-1.5 inline-flex items-center gap-1 text-[10px] font-semibold uppercase text-info-text"
+                          title="AI-flagged: multiple candidates tied on score"
+                        >
+                          <Sparkles className="h-2.5 w-2.5" aria-hidden />
+                          AI-flagged
+                        </span>
+                      ) : null}
                     </Td>
                     <Td className="whitespace-nowrap tabular text-meta text-foreground-muted">
                       {formatDate(item.date)}
