@@ -3,24 +3,35 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { PageHeader, EmptyState } from '@/components/layout/page-header';
+import { Badge } from '@/components/ui/badge';
+import { Panel } from '@/components/ui/panel';
+import { Table, TableWrap, Td, Th } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
 import { useActivity } from '@/features/reconciliation/hooks/use-review';
 import { formatDateTime, shortenHash } from '@/features/reconciliation/lib/format';
 import type { ChainVerification } from '@/features/reconciliation/types';
 
-function ActionBadge({ action }: { action: string }) {
-  const tone =
-    action === 'proposal.approved'
-      ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
-      : action === 'proposal.rejected'
-        ? 'bg-red-50 text-red-700 ring-red-200'
-        : action === 'proposal.overridden' || action === 'proposal.created'
-          ? 'bg-amber-50 text-amber-800 ring-amber-200'
-          : 'bg-zinc-100 text-zinc-600 ring-zinc-200';
+function actionTone(action: string): 'success' | 'danger' | 'warning' | 'neutral' {
+  if (action === 'proposal.approved') {
+    return 'success';
+  }
 
+  if (action === 'proposal.rejected') {
+    return 'danger';
+  }
+
+  if (action === 'proposal.overridden' || action === 'proposal.created') {
+    return 'warning';
+  }
+
+  return 'neutral';
+}
+
+function ActionBadge({ action }: { action: string }) {
   return (
-    <span className={`inline-block whitespace-nowrap rounded-sm px-1.5 py-0.5 font-mono text-[11px] font-medium ring-1 ring-inset ${tone}`}>
+    <Badge tone={actionTone(action)} className="font-mono tracking-tight">
       {action}
-    </span>
+    </Badge>
   );
 }
 
@@ -33,18 +44,19 @@ function IntegrityCell({
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 whitespace-nowrap font-mono text-[11px] ${
-        status === 'verified' ? 'text-emerald-700' : 'text-red-600'
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap font-mono text-meta ${
+        status === 'verified' ? 'text-success-text' : 'text-danger-text'
       }`}
       title={hash}
     >
       <span
-        className={`inline-block h-1.5 w-1.5 rounded-full ${
-          status === 'verified' ? 'bg-emerald-500' : 'bg-red-500'
-        }`}
+        aria-hidden
+        className={`inline-block h-1.5 w-1.5 rounded-full ${status === 'verified' ? 'bg-success' : 'bg-danger'}`}
       />
       {status === 'verified' ? 'Verified' : 'Unverified'}
-      <code className="rounded-sm bg-zinc-100 px-1 py-0.5 text-zinc-400">{shortenHash(hash, 6)}</code>
+      <code className="rounded-sm bg-surface-muted px-1 py-0.5 text-foreground-muted">
+        {shortenHash(hash, 6)}
+      </code>
     </span>
   );
 }
@@ -54,15 +66,14 @@ function ChainBanner({ verification }: { verification: ChainVerification }) {
     return (
       <div
         role="status"
-        className="flex items-center gap-3 rounded-md bg-emerald-50 px-4 py-3 ring-1 ring-inset ring-emerald-200"
+        className="flex items-start gap-3 rounded-md border border-success-border bg-success-bg px-4 py-3"
       >
-        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-600">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-            <path d="M2.5 6.5L5 9l4.5-6" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+        <span aria-hidden className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-success text-[11px] font-bold text-white">
+          ✓
         </span>
-        <p className="text-[13px] font-semibold text-emerald-900">
-          Hash chain valid — all {verification.checkedCount} entries verified against genesis.
+        <p className="text-secondary text-success-text">
+          <span className="font-semibold">Hash chain valid</span> — all{' '}
+          {verification.checkedCount} entries verified against genesis.
         </p>
       </div>
     );
@@ -71,16 +82,15 @@ function ChainBanner({ verification }: { verification: ChainVerification }) {
   return (
     <div
       role="alert"
-      className="flex items-center gap-3 rounded-md bg-red-50 px-4 py-3 ring-1 ring-inset ring-red-300"
+      className="flex items-start gap-3 rounded-md border border-danger-border bg-danger-bg px-4 py-3"
     >
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-red-600">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-          <path d="M6 2v5M6 9.5v.5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
-        </svg>
+        <span aria-hidden className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-danger text-[11px] font-bold text-white">
+        !
       </span>
-      <p className="text-[13px] text-red-900">
-        <span className="font-bold">Audit chain INVALID</span> — first failure at entry #{(verification.brokenAtIndex ?? 0) + 1}.{' '}
-        <span className="font-medium">{verification.reason}</span> Entries from that point cannot be trusted.
+      <p className="text-secondary text-danger-text">
+        <span className="font-semibold">Audit chain invalid</span> — first failure at entry #
+        {(verification.brokenAtIndex ?? 0) + 1}. <span className="font-medium">{verification.reason}</span>{' '}
+        Entries from that point cannot be trusted.
       </p>
     </div>
   );
@@ -136,22 +146,25 @@ export default function ActivityPage() {
 
   const filtersActive = actionFilter !== '' || entityFilter !== '' || dateFrom !== '' || dateTo !== '';
 
+  const selectClass =
+    'h-7 max-w-full rounded-sm border border-border-strong bg-surface px-1.5 text-secondary focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/25';
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <PageHeader
         title="Activity"
-        subtitle="Append-only audit log of every decision and override. Each entry is hash-chained to its predecessor."
+        description="Append-only audit log of every decision and override. Each entry is hash-chained to its predecessor."
       />
 
       {verification ? <ChainBanner verification={verification} /> : null}
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-md border border-zinc-200 bg-white px-4 py-3">
-        <label className="flex items-center gap-1.5 text-xs font-medium text-zinc-500">
+      <Panel className="flex flex-wrap items-center gap-x-4 gap-y-2 px-3 py-2.5 sm:px-4">
+        <label className="flex items-center gap-1.5 text-meta font-medium text-foreground-muted">
           Action
           <select
             value={actionFilter}
             onChange={(event) => setActionFilter(event.target.value)}
-            className="h-7 max-w-48 rounded-md border border-input bg-white px-1.5 text-[13px]"
+            className={selectClass}
           >
             <option value="">Any</option>
             {actions.map((action) => (
@@ -162,12 +175,12 @@ export default function ActivityPage() {
           </select>
         </label>
 
-        <label className="flex items-center gap-1.5 text-xs font-medium text-zinc-500">
+        <label className="flex items-center gap-1.5 text-meta font-medium text-foreground-muted">
           Entity
           <select
             value={entityFilter}
             onChange={(event) => setEntityFilter(event.target.value)}
-            className="h-7 rounded-md border border-input bg-white px-1.5 text-[13px]"
+            className={selectClass}
           >
             <option value="">Any</option>
             {entityTypes.map((type) => (
@@ -178,27 +191,29 @@ export default function ActivityPage() {
           </select>
         </label>
 
-        <label className="flex items-center gap-1.5 text-xs font-medium text-zinc-500">
+        <label className="flex items-center gap-1.5 text-meta font-medium text-foreground-muted">
           From
-          <input
+          <Input
             type="date"
             value={dateFrom}
             onChange={(event) => setDateFrom(event.target.value)}
-            className="h-7 rounded-md border border-input px-2 text-[13px]"
+            aria-label="From date"
+            className="h-7 w-36 py-0 text-secondary"
           />
         </label>
 
-        <label className="flex items-center gap-1.5 text-xs font-medium text-zinc-500">
+        <label className="flex items-center gap-1.5 text-meta font-medium text-foreground-muted">
           To
-          <input
+          <Input
             type="date"
             value={dateTo}
             onChange={(event) => setDateTo(event.target.value)}
-            className="h-7 rounded-md border border-input px-2 text-[13px]"
+            aria-label="To date"
+            className="h-7 w-36 py-0 text-secondary"
           />
         </label>
 
-        <span className="ml-auto font-mono text-xs tabular-nums text-muted-foreground">
+        <span className="tabular ml-auto hidden text-meta text-foreground-muted sm:block">
           {filtered.length} of {entries.length} entries · oldest first
         </span>
 
@@ -211,17 +226,17 @@ export default function ActivityPage() {
               setDateFrom('');
               setDateTo('');
             }}
-            className="text-xs font-medium text-zinc-500 underline-offset-2 hover:text-zinc-900 hover:underline"
+            className="ml-auto text-meta font-medium text-foreground-muted underline-offset-2 hover:text-foreground hover:underline sm:ml-0"
           >
             Reset
           </button>
         ) : null}
-      </div>
+      </Panel>
 
       {isLoading ? (
-        <p className="py-12 text-center text-sm text-muted-foreground">Verifying chain…</p>
+        <p className="py-12 text-center text-secondary text-foreground-muted" aria-busy>Verifying chain…</p>
       ) : isError ? (
-        <p className="py-12 text-center text-sm text-red-600">Could not load the activity log.</p>
+        <p className="py-12 text-center text-secondary text-danger-text">Could not load the activity log.</p>
       ) : entries.length === 0 ? (
         <EmptyState
           title="No activity recorded yet"
@@ -230,71 +245,73 @@ export default function ActivityPage() {
           actionLabel="Open Reconciliation"
         />
       ) : filtered.length === 0 ? (
-        <p className="rounded-md border border-dashed border-zinc-300 px-4 py-10 text-center text-sm text-muted-foreground">
+        <p className="rounded-md border border-dashed border-border-strong px-4 py-10 text-center text-secondary text-foreground-muted">
           No entries match the current filters.
         </p>
       ) : (
-        <section className="overflow-hidden rounded-md border border-zinc-200 bg-white">
-          <table className="w-full border-collapse text-[13px]">
-            <thead>
-              <tr className="border-b border-zinc-200 text-left text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-                <th className="px-4 py-2 font-semibold">Time</th>
-                <th className="px-4 py-2 font-semibold">Actor</th>
-                <th className="px-4 py-2 font-semibold">Action</th>
-                <th className="px-4 py-2 font-semibold">Entity</th>
-                <th className="px-4 py-2 font-semibold">Reason</th>
-                <th className="px-4 py-2 font-semibold">Integrity</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((entry, index) => {
-                const payload = entry.payload as Record<string, unknown> | null;
-                const reason =
-                  payload !== null && typeof payload['reason'] === 'string' ? payload['reason'] : null;
+        <Panel className="overflow-hidden">
+          <TableWrap>
+            <Table className="min-w-[44rem]">
+              <thead>
+                <tr>
+                  <Th>Time</Th>
+                  <Th className="hidden md:table-cell">Actor</Th>
+                  <Th>Action</Th>
+                  <Th>Entity</Th>
+                  <Th className="hidden lg:table-cell">Reason</Th>
+                  <Th>Integrity</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((entry, index) => {
+                  const payload = entry.payload as Record<string, unknown> | null;
+                  const reason =
+                    payload !== null && typeof payload['reason'] === 'string' ? payload['reason'] : null;
 
-                return (
-                  <tr key={entry.id} className="border-b border-zinc-100 last:border-b-0 hover:bg-zinc-50/70">
-                    <td className="whitespace-nowrap px-4 py-2 font-mono text-xs tabular-nums text-zinc-600">
-                      {formatDateTime(entry.timestamp)}
-                    </td>
-                    <td className="max-w-40 truncate px-4 py-2 text-zinc-700" title={entry.actor}>
-                      {entry.actor}
-                    </td>
-                    <td className="px-4 py-2">
-                      <ActionBadge action={entry.action} />
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2 font-mono text-xs text-zinc-600">
-                      {entry.entityType === 'proposal' ? (
-                        <Link
-                          href={`/reconciliation/${entry.entityId}`}
-                          className="underline-offset-2 hover:text-zinc-900 hover:underline"
-                        >
-                          proposal ·{shortenHash(entry.entityId, 6)}
-                        </Link>
-                      ) : (
-                        <>
-                          {entry.entityType} ·{shortenHash(entry.entityId, 6)}
-                        </>
-                      )}
-                    </td>
-                    <td className="max-w-72 px-4 py-2">
-                      {reason ? (
-                        <span className="block truncate italic text-zinc-600" title={reason}>
-                          “{reason}”
-                        </span>
-                      ) : (
-                        <span className="text-zinc-300">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-2">
-                      <IntegrityCell status={integrityStatusAt(index)} hash={entry.hash} />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </section>
+                  return (
+                    <tr key={entry.id} className="last:border-b-0 transition-colors hover:bg-surface-muted/60">
+                      <Td className="whitespace-nowrap tabular text-meta text-foreground-muted">
+                        {formatDateTime(entry.timestamp)}
+                      </Td>
+                      <Td className="hidden max-w-40 truncate md:table-cell" title={entry.actor}>
+                        {entry.actor}
+                      </Td>
+                      <Td>
+                        <ActionBadge action={entry.action} />
+                      </Td>
+                      <Td className="whitespace-nowrap font-mono text-meta text-foreground">
+                        {entry.entityType === 'proposal' ? (
+                          <Link
+                            href={`/reconciliation/${entry.entityId}`}
+                            className="underline-offset-2 hover:text-primary hover:underline"
+                          >
+                            proposal ·{shortenHash(entry.entityId, 6)}
+                          </Link>
+                        ) : (
+                          <>
+                            {entry.entityType} ·{shortenHash(entry.entityId, 6)}
+                          </>
+                        )}
+                      </Td>
+                      <Td className="hidden max-w-72 lg:table-cell">
+                        {reason ? (
+                          <span className="block truncate italic text-foreground-muted" title={reason}>
+                            “{reason}”
+                          </span>
+                        ) : (
+                          <span className="text-foreground-muted/50">—</span>
+                        )}
+                      </Td>
+                      <Td>
+                        <IntegrityCell status={integrityStatusAt(index)} hash={entry.hash} />
+                      </Td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </Table>
+          </TableWrap>
+        </Panel>
       )}
     </div>
   );

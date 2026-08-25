@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { PageHeader } from '@/components/layout/page-header';
-import { EmptyState } from '@/components/layout/page-header';
+import { PageHeader, EmptyState } from '@/components/layout/page-header';
+import { Button } from '@/components/ui/button';
+import { Panel } from '@/components/ui/panel';
+import { Table, TableWrap, Td, Th } from '@/components/ui/table';
 import { SummaryStrip } from '@/features/reconciliation/components/summary-strip';
 import { ConfidenceBar, StatusChip } from '@/features/reconciliation/components/status-chip';
 import { useGenerateProposals, useWorklist } from '@/features/reconciliation/hooks/use-review';
@@ -12,8 +14,8 @@ import type { WorklistFilter } from '@/features/reconciliation/types';
 
 const FILTERS: Array<{ value: WorklistFilter; label: string }> = [
   { value: 'all', label: 'All' },
-  { value: 'pending', label: 'Pending' },
-  { value: 'accepted', label: 'Accepted' },
+  { value: 'pending', label: 'Needs review' },
+  { value: 'accepted', label: 'Matched' },
   { value: 'rejected', label: 'Rejected' },
   { value: 'unmatched', label: 'Unmatched' },
 ];
@@ -27,63 +29,65 @@ export default function ReconciliationPage() {
   const generate = useGenerateProposals();
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageHeader
         title="Reconciliation"
-        subtitle="Every bank movement with a proposed counterpart. Review before anything posts."
+        description="Every bank movement with a proposed counterpart. Review before anything posts."
         actions={
-          <button
-            type="button"
-            onClick={() => generate.mutate()}
-            disabled={generate.isPending}
-            className="rounded-md bg-zinc-900 px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-zinc-700 disabled:opacity-50"
-          >
+          <Button onClick={() => generate.mutate()} disabled={generate.isPending} size="lg">
             {generate.isPending ? 'Matching…' : 'Match unmatched banks'}
-          </button>
+          </Button>
         }
       />
 
       <SummaryStrip />
 
-      <div className="rounded-md border border-zinc-200 bg-white">
-        <div className="flex items-center justify-between border-b border-zinc-200 px-3 py-2">
-          <div className="flex items-center gap-1" role="tablist" aria-label="Status filter">
-            {FILTERS.map((item) => (
-              <button
-                key={item.value}
-                type="button"
-                role="tab"
-                aria-selected={filter === item.value}
-                onClick={() => {
-                  setFilter(item.value);
-                  setPage(1);
-                }}
-                className={`rounded-md px-2.5 py-1 text-[13px] font-medium ${
-                  filter === item.value
-                    ? 'bg-zinc-900 text-white'
-                    : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
+      <Panel>
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-border px-3 pt-2 sm:px-4">
+          <div className="flex items-center gap-0.5 overflow-x-auto scrollbar-thin" role="tablist" aria-label="Status filter">
+            {FILTERS.map((item) => {
+              const active = filter === item.value;
+
+              return (
+                <button
+                  key={item.value}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => {
+                    setFilter(item.value);
+                    setPage(1);
+                  }}
+                  className={`whitespace-nowrap border-b-2 px-2.5 py-2 text-secondary transition-colors focus-visible:ring-2 focus-visible:ring-ring ${
+                    active
+                      ? 'border-foreground font-semibold text-foreground'
+                      : 'border-transparent font-medium text-foreground-muted hover:text-foreground'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
           </div>
 
           {data ? (
-            <p className="font-mono text-xs tabular-nums text-muted-foreground">
+            <p className="hidden pb-2 tabular text-meta text-foreground-muted sm:block">
               {data.total.toLocaleString()} rows · page {data.page} of {data.totalPages}
             </p>
           ) : null}
         </div>
 
         {isLoading ? (
-          <div className="px-4 py-10 text-center text-sm text-muted-foreground">Loading worklist…</div>
+          <div className="px-4 py-12 text-center text-secondary text-foreground-muted" aria-busy>
+            Loading worklist…
+          </div>
         ) : isError || !data ? (
-          <div className="px-4 py-10 text-center text-sm text-red-600">
+          <div className="px-4 py-12 text-center text-secondary text-danger-text">
             Could not load the worklist. Confirm you are signed in and the API is reachable.
           </div>
         ) : data.items.length === 0 ? (
           <EmptyState
+            className="rounded-none border-0"
             title={filter === 'unmatched' ? 'Nothing is unmatched' : 'No proposals here yet'}
             description={
               filter === 'all'
@@ -94,93 +98,98 @@ export default function ReconciliationPage() {
             actionLabel="Import data"
           />
         ) : (
-          <table className="w-full border-collapse text-[13px]">
-            <thead>
-              <tr className="border-b border-zinc-200 bg-zinc-50/60 text-left text-[11px] font-semibold uppercase tracking-widest text-zinc-500">
-                <th className="px-3 py-2 font-semibold">Status</th>
-                <th className="px-3 py-2 font-semibold">Date</th>
-                <th className="px-3 py-2 font-semibold">Description</th>
-                <th className="px-3 py-2 text-right font-semibold">Amount</th>
-                <th className="px-3 py-2 font-semibold">Best Match</th>
-                <th className="px-3 py-2 font-semibold">Confidence</th>
-                <th className="px-3 py-2 text-right font-semibold">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.items.map((item) => (
-                <tr key={item.key} className="border-b border-zinc-100 last:border-b-0 hover:bg-zinc-50/70">
-                  <td className="whitespace-nowrap px-3 py-2">
-                    <StatusChip status={item.status} />
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-2 font-mono text-xs tabular-nums text-zinc-600">
-                    {formatDate(item.date)}
-                  </td>
-                  <td className="max-w-[20rem] px-3 py-2">
-                    <p className="truncate font-medium text-zinc-800" title={item.description}>
-                      {item.description}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {item.vendor}
-                      {item.reference ? ` · ${item.reference}` : ''}
-                    </p>
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-2 text-right font-mono text-[13px] tabular-nums text-zinc-900">
-                    {formatCents(item.amountCents, item.currency)}
-                  </td>
-                  <td className="max-w-[16rem] px-3 py-2">
-                    {item.bestMatch ? (
-                      <span className="block truncate text-zinc-700" title={item.bestMatch.label}>
-                        {item.bestMatch.label}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-zinc-400">—</span>
-                    )}
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-2">
-                    <ConfidenceBar score={item.score} />
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-2 text-right">
-                    {item.proposalId ? (
-                      <Link
-                        href={`/reconciliation/${item.proposalId}`}
-                        className="rounded-md border border-zinc-300 px-2 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-50"
-                      >
-                        Review
-                      </Link>
-                    ) : (
-                      <span className="text-xs italic text-zinc-400">no proposal</span>
-                    )}
-                  </td>
+          <TableWrap>
+            <Table className="min-w-[34rem] md:min-w-[52rem]">
+              <thead>
+                <tr>
+                  <Th>Status</Th>
+                  <Th>Date</Th>
+                  <Th>Transaction</Th>
+                  <Th numeric className="min-w-28">Amount</Th>
+                  <Th className="hidden md:table-cell">Proposed match</Th>
+                  <Th className="hidden xl:table-cell">Confidence</Th>
+                  <Th numeric>Action</Th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {data.items.map((item) => (
+                  <tr key={item.key} className="group transition-colors last:border-b-0 hover:bg-surface-muted/60">
+                    <Td className="whitespace-nowrap">
+                      <StatusChip status={item.status} />
+                    </Td>
+                    <Td className="whitespace-nowrap tabular text-meta text-foreground-muted">
+                      {formatDate(item.date)}
+                    </Td>
+                    <Td className="max-w-72">
+                      <p className="truncate font-medium text-foreground" title={item.description}>
+                        {item.description}
+                      </p>
+                      <p className="truncate text-meta text-foreground-muted">
+                        {item.vendor}
+                        {item.reference ? ` · ${item.reference}` : ''}
+                      </p>
+                    </Td>
+                    <Td numeric className="whitespace-nowrap font-medium text-foreground">
+                      {formatCents(item.amountCents, item.currency)}
+                    </Td>
+                    <Td className="hidden max-w-64 md:table-cell">
+                      {item.bestMatch ? (
+                        <span className="block truncate text-foreground" title={item.bestMatch.label}>
+                          {item.bestMatch.label}
+                        </span>
+                      ) : (
+                        <span className="text-foreground-muted/60">—</span>
+                      )}
+                    </Td>
+                    <Td className="hidden whitespace-nowrap xl:table-cell">
+                      <ConfidenceBar score={item.score} />
+                    </Td>
+                    <Td className="whitespace-nowrap text-right">
+                      {item.proposalId ? (
+                        <Link
+                          href={`/reconciliation/${item.proposalId}`}
+                          className="inline-flex rounded-sm border border-border-strong bg-surface px-2.5 py-1 text-meta font-medium text-foreground hover:bg-surface-muted focus-visible:ring-2 focus-visible:ring-ring"
+                          aria-label={`Review ${item.description}`}
+                        >
+                          Review
+                        </Link>
+                      ) : item.bestMatch ? (
+                        <span className="text-meta italic text-foreground-muted">no proposal</span>
+                      ) : (
+                        <span className="text-meta text-foreground-muted/60">—</span>
+                      )}
+                    </Td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </TableWrap>
         )}
 
         {data && data.totalPages > 1 ? (
-          <div className="flex items-center justify-between border-t border-zinc-200 px-3 py-2">
-            <button
-              type="button"
+          <div className="flex items-center justify-between border-t border-border px-3 py-2 sm:px-4">
+            <Button
+              variant="outline"
+              size="sm"
               disabled={page <= 1}
               onClick={() => setPage((current) => Math.max(1, current - 1))}
-              className="rounded-md border border-zinc-300 px-2.5 py-1 text-xs font-medium text-zinc-700 disabled:opacity-40 hover:bg-zinc-50"
             >
               Previous
-            </button>
-            <span className="font-mono text-xs tabular-nums text-muted-foreground">
+            </Button>
+            <span className="tabular text-meta text-foreground-muted">
               Page {page} / {data.totalPages}
             </span>
-            <button
-              type="button"
+            <Button
+              variant="outline"
+              size="sm"
               disabled={page >= data.totalPages}
               onClick={() => setPage((current) => current + 1)}
-              className="rounded-md border border-zinc-300 px-2.5 py-1 text-xs font-medium text-zinc-700 disabled:opacity-40 hover:bg-zinc-50"
             >
               Next
-            </button>
+            </Button>
           </div>
         ) : null}
-      </div>
+      </Panel>
     </div>
   );
 }

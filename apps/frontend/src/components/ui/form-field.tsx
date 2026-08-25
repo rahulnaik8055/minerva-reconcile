@@ -11,17 +11,17 @@ interface FormFieldProps {
 
 export function FormField({ label, htmlFor, error, hint, className, children }: FormFieldProps) {
   return (
-    <div className={cn('space-y-2', className)}>
-      <label htmlFor={htmlFor} className="block text-sm font-medium">
+    <div className={cn('space-y-1.5', className)}>
+      <label htmlFor={htmlFor} className="block text-body font-medium">
         {label}
       </label>
       {children}
       {error ? (
-        <p id={`${htmlFor}-error`} role="alert" className="text-sm text-destructive">
+        <p id={`${htmlFor}-error`} role="alert" className="text-meta text-danger-text">
           {error}
         </p>
       ) : hint ? (
-        <p className="text-xs text-muted-foreground">{hint}</p>
+        <p className="text-meta text-foreground-muted">{hint}</p>
       ) : null}
     </div>
   );

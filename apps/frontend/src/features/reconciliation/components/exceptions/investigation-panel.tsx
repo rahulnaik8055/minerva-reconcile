@@ -1,68 +1,53 @@
 'use client';
 
 import Link from 'next/link';
-import { PanelLabel } from '@/components/layout/page-header';
+import { AiAssistNote, Num } from '@/components/ui/data';
+import { Badge } from '@/components/ui/badge';
+import { PanelLabel } from '@/components/ui/panel';
 import { ConfidenceBar } from '../status-chip';
 import {
   EXCEPTION_STATUS_LABELS,
-  EXCEPTION_TYPE_DOT,
+  EXCEPTION_STATUS_TONE,
   EXCEPTION_TYPE_LABELS,
+  EXCEPTION_TYPE_TONE,
   causeLabel,
-  exceptionStatusClasses,
   isSupportedCause,
 } from '../../lib/exception-meta';
 import { formatCents, formatDate, formatSignedCents } from '../../lib/format';
 import type { ExceptionItem, ExceptionRelatedRecord } from '../../types';
 
-function StatusBadge({ status }: { status: ExceptionItem['status'] }) {
-  return (
-    <span
-      className={`rounded-sm px-1.5 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${exceptionStatusClasses(status)}`}
-    >
-      {EXCEPTION_STATUS_LABELS[status]}
-    </span>
-  );
-}
-
-function TypeBadge({ item }: { item: ExceptionItem }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-sm bg-zinc-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-zinc-700">
-      <span className={`h-1.5 w-1.5 rounded-full ${EXCEPTION_TYPE_DOT[item.exceptionType]}`} />
-      {EXCEPTION_TYPE_LABELS[item.exceptionType]}
-    </span>
-  );
-}
-
-function MoneyCell({
+function MoneyFigure({
   label,
   cents,
   currency,
-  tone = 'neutral',
+  emphasis = false,
 }: {
   label: string;
   cents: number | null;
   currency: string;
-  tone?: 'neutral' | 'negative' | 'positive';
+  emphasis?: boolean;
 }) {
-  const toneClass =
-    tone === 'negative' ? 'text-red-600' : tone === 'positive' ? 'text-emerald-700' : 'text-zinc-900';
+  const tone =
+    cents === null || cents === 0
+      ? 'text-foreground'
+      : cents < 0
+        ? 'text-danger-text'
+        : emphasis
+          ? 'text-foreground'
+          : 'text-foreground';
 
   return (
     <div className="min-w-0">
-      <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-400">{label}</p>
-      <p className={`mt-1 truncate font-mono text-xl tabular-nums md:text-2xl ${toneClass}`}>
+      <p className="text-label font-semibold uppercase text-foreground-muted">{label}</p>
+      <Num
+        className={`mt-1 truncate font-serif tracking-tight ${
+          emphasis ? 'text-lg font-semibold sm:text-xl' : 'text-base font-medium'
+        } ${tone}`}
+      >
         {cents === null ? '—' : formatCents(cents, currency)}
-      </p>
+      </Num>
     </div>
   );
-}
-
-function varianceTone(varianceCents: number): 'neutral' | 'negative' | 'positive' {
-  if (varianceCents < 0) {
-    return 'negative';
-  }
-
-  return varianceCents > 0 ? 'positive' : 'neutral';
 }
 
 function ExplanationBlock({ causes }: { causes: ExceptionItem['causes'] }) {
@@ -73,34 +58,37 @@ function ExplanationBlock({ causes }: { causes: ExceptionItem['causes'] }) {
   const supported = causes.filter((cause) => isSupportedCause(cause.causeType));
 
   if (supported.length > 0) {
-    const primary = supported[0];
+    const primary = supported[0]!;
 
     return (
-      <section className="overflow-hidden rounded-md bg-zinc-900">
-        <header className="border-b border-zinc-700/60 px-4 py-2">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-400">
-            Supported explanation
-          </p>
-        </header>
+      <section className="rounded-sm border border-info-border bg-info-bg px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <PanelLabel>Supported explanation</PanelLabel>
+          <AiAssistNote />
+        </div>
 
-        <div className="space-y-3 px-4 py-3">
-          <p className="font-mono text-lg tabular-nums text-white">
-            {causeLabel(primary.causeType)}
+        <div className="mt-3 space-y-2">
+          <p className="flex flex-wrap items-baseline gap-x-3">
+            <span className="text-body font-semibold text-foreground">
+              {causeLabel(primary.causeType)}
+            </span>
             {primary.amountCents !== null ? (
-              <span className="ml-2 text-amber-300">{formatSignedCents(primary.amountCents)}</span>
+              <Num className="font-serif text-base font-semibold text-warning-text">
+                {formatSignedCents(primary.amountCents)}
+              </Num>
             ) : null}
           </p>
 
-          <p className="text-[13px] leading-relaxed text-zinc-300">{primary.description}</p>
+          <p className="text-secondary leading-relaxed text-foreground-muted">
+            {primary.description}
+          </p>
 
-          {primary.target ? (
-            <RelatedChip record={primary.target} variant="onDark" />
-          ) : null}
+          {primary.target ? <RelatedChip record={primary.target} /> : null}
 
           {supported.length > 1 ? (
-            <ul className="space-y-1 border-t border-zinc-700/60 pt-2">
+            <ul className="space-y-1 border-t border-info-border pt-2">
               {supported.slice(1).map((cause, index) => (
-                <li key={index} className="text-xs text-zinc-400">
+                <li key={index} className="text-meta text-foreground-muted">
                   {causeLabel(cause.causeType)}: {cause.description}
                 </li>
               ))}
@@ -112,38 +100,28 @@ function ExplanationBlock({ causes }: { causes: ExceptionItem['causes'] }) {
   }
 
   return (
-    <section className="rounded-md border border-dashed border-zinc-300 bg-zinc-50 px-4 py-3">
-      <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-400">
-        Supported explanation
-      </p>
-      <p className="mt-1.5 text-[13px] italic text-zinc-600">
+    <section className="rounded-sm border border-dashed border-border-strong bg-surface-muted px-4 py-3">
+      <PanelLabel>Supported explanation</PanelLabel>
+      <p className="mt-1.5 text-secondary italic text-foreground-muted">
         No supported explanation in the imported records — this variance is unexplained.
       </p>
     </section>
   );
 }
 
-function RelatedChip({
-  record,
-  variant = 'light',
-}: {
-  record: ExceptionRelatedRecord;
-  variant?: 'light' | 'onDark';
-}) {
-  const base =
-    variant === 'onDark'
-      ? 'inline-flex items-center gap-1 rounded-sm bg-zinc-800 px-2 py-1 font-mono text-[11px] text-zinc-200 hover:bg-zinc-700'
-      : '';
-
+function RelatedChip({ record }: { record: ExceptionRelatedRecord }) {
   if (record.sourceType === 'proposal') {
     return (
-      <Link href={`/reconciliation/${record.recordId}`} className={`${base} underline-offset-2 hover:underline`}>
+      <Link
+        href={`/reconciliation/${record.recordId}`}
+        className="inline-flex items-center gap-1 rounded-sm border border-border bg-surface px-2 py-1 font-mono text-meta text-foreground hover:bg-surface-muted focus-visible:ring-2 focus-visible:ring-ring"
+      >
         {record.label} ↗
       </Link>
     );
   }
 
-  return <span className={base}>{record.label}</span>;
+  return <span className="inline-flex items-center rounded-sm border border-border bg-surface px-2 py-1 font-mono text-meta text-foreground-muted">{record.label}</span>;
 }
 
 export function InvestigationPanel({
@@ -168,30 +146,35 @@ export function InvestigationPanel({
       ]
     : [];
 
+  const hasVariance = item.varianceCents !== null && item.varianceCents !== 0;
+
   return (
-    <article className="divide-y divide-zinc-200 overflow-hidden rounded-md border border-zinc-200 bg-white">
-      <header className="space-y-3 px-5 pt-4">
+    <article className="divide-y divide-border overflow-hidden rounded-md border border-border bg-surface">
+      <header className="space-y-3 px-4 pt-4 sm:px-5">
         <div className="flex flex-wrap items-center gap-2">
-          <TypeBadge item={item} />
-          <StatusBadge status={item.status} />
+          <Badge tone={EXCEPTION_TYPE_TONE[item.exceptionType]} dot className="uppercase">
+            {EXCEPTION_TYPE_LABELS[item.exceptionType]}
+          </Badge>
+          <Badge tone={EXCEPTION_STATUS_TONE[item.status]}>
+            {EXCEPTION_STATUS_LABELS[item.status]}
+          </Badge>
           {item.outcome ? (
-            <span className="rounded-sm bg-zinc-50 px-1.5 py-0.5 font-mono text-[11px] text-zinc-500 ring-1 ring-inset ring-zinc-200">
+            <span className="rounded-sm bg-surface-muted px-1.5 py-0.5 font-mono text-meta text-foreground-muted ring-1 ring-inset ring-border">
               {item.outcome}
             </span>
           ) : null}
           {item.confidence !== null ? (
-            <span className="ml-auto flex w-32 items-center gap-2">
+            <span className="ml-auto flex items-center gap-2">
               <ConfidenceBar score={item.confidence} />
-              <span className="font-mono text-xs tabular-nums text-zinc-500">
-                {Math.round(item.confidence * 100)}%
-              </span>
             </span>
           ) : null}
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold tracking-tight text-zinc-900">{item.title}</h2>
-          <p className="mt-0.5 text-[13px] text-muted-foreground">
+          <h2 className="font-serif text-title font-semibold tracking-tight text-foreground">
+            {item.title}
+          </h2>
+          <p className="mt-0.5 tabular text-secondary text-foreground-muted">
             {[
               item.provider,
               item.settlementReference,
@@ -202,63 +185,87 @@ export function InvestigationPanel({
           </p>
         </div>
 
-        {item.detail ? <p className="pb-4 text-[13px] leading-relaxed text-zinc-700">{item.detail}</p> : <div className="pb-1" />}
+        {item.detail ? (
+          <p className="pb-4 text-secondary leading-relaxed text-foreground-muted">{item.detail}</p>
+        ) : (
+          <div className="pb-1" />
+        )}
       </header>
 
-      <section className="grid grid-cols-3 divide-x divide-zinc-200 bg-zinc-50/60">
-        <div className="px-5 py-4">
-          <MoneyCell
-            label={item.settlement ? 'Expected net' : 'Amount'}
-            cents={item.settlement ? item.settlement.expectedNetCents : item.amountCents}
-            currency={item.currency}
-          />
-        </div>
-        <div className="px-5 py-4">
-          <MoneyCell label="Actual deposit" cents={actualCents} currency={item.currency} />
-        </div>
-        <div className="px-5 py-4">
-          <MoneyCell
-            label="Variance"
-            cents={item.varianceCents}
-            currency={item.currency}
-            tone={item.varianceCents === null ? 'neutral' : varianceTone(item.varianceCents)}
-          />
-        </div>
-      </section>
-
-      {breakdownRows.length > 0 ? (
-        <section className="px-5 py-4">
+      {item.settlement ? (
+        <section className="px-4 py-4 sm:px-5">
           <PanelLabel>Settlement breakdown</PanelLabel>
-          <table className="mt-2 w-full text-[13px]">
+          <table className="mt-2 w-full max-w-md text-table">
             <tbody>
               {breakdownRows.map((row) => (
-                <tr key={row.label} className="border-b border-zinc-100 last:border-b-0">
-                  <td className="py-1.5 text-zinc-600">{row.label}</td>
-                  <td className="py-1.5 text-right font-mono tabular-nums text-zinc-800">
+                <tr key={row.label} className="border-b border-border/60">
+                  <td className="py-1.5 text-secondary text-foreground-muted">{row.label}</td>
+                  <td className="tabular py-1.5 text-right text-secondary text-foreground">
                     {formatSignedCents(row.cents, item.currency)}
                   </td>
                 </tr>
               ))}
-              <tr className="border-t-2 border-zinc-300">
-                <td className="pt-2 font-medium text-zinc-900">Expected net</td>
-                <td className="pt-2 text-right font-mono font-semibold tabular-nums text-zinc-900">
+              <tr className="border-t-2 border-border-strong">
+                <td className="pt-2 text-body font-semibold text-foreground">Expected net</td>
+                <td className="tabular pt-2 text-right font-serif text-secondary font-semibold text-foreground">
                   {formatCents(item.settlement!.expectedNetCents, item.currency)}
                 </td>
               </tr>
             </tbody>
           </table>
+
+          <div className="mt-4 grid grid-cols-1 divide-y divide-border rounded-sm border border-border bg-surface-muted/50 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+            <div className="px-4 py-3">
+              <MoneyFigure
+                label="Expected net"
+                cents={item.settlement.expectedNetCents}
+                currency={item.currency}
+                emphasis
+              />
+            </div>
+            <div className="px-4 py-3">
+              <MoneyFigure label="Actual deposit" cents={actualCents} currency={item.currency} emphasis />
+            </div>
+            <div className="px-4 py-3">
+              <MoneyFigure
+                label={hasVariance ? 'Variance' : item.varianceCents === 0 ? 'Variance — none' : 'Variance'}
+                cents={item.varianceCents}
+                currency={item.currency}
+                emphasis
+              />
+              {hasVariance && item.varianceCents !== null ? (
+                <p className={`mt-0.5 text-meta font-medium ${item.varianceCents < 0 ? 'text-danger-text' : 'text-warning-text'}`}>
+                  {item.varianceCents < 0 ? 'Deposit short of expectation' : 'Deposit exceeds expectation'}
+                </p>
+              ) : item.varianceCents === 0 ? (
+                <p className="mt-0.5 text-meta font-medium text-success-text">Exact match</p>
+              ) : null}
+            </div>
+          </div>
         </section>
-      ) : null}
+      ) : (
+        <section className="grid grid-cols-1 divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          <div className="px-4 py-4 sm:px-5">
+            <MoneyFigure label="Amount" cents={item.amountCents} currency={item.currency} emphasis />
+          </div>
+          <div className="px-4 py-4 sm:px-5">
+            <MoneyFigure label="Actual deposit" cents={actualCents} currency={item.currency} emphasis />
+          </div>
+          <div className="px-4 py-4 sm:px-5">
+            <MoneyFigure label="Variance" cents={item.varianceCents} currency={item.currency} emphasis />
+          </div>
+        </section>
+      )}
 
       {(item.causes.length > 0 || item.family === 'settlement') && (
-        <section className="px-5 py-4">
+        <section className="px-4 py-4 sm:px-5">
           <ExplanationBlock causes={item.causes} />
         </section>
       )}
 
       {item.evidence.length > 0 ? (
-        <section className="px-5 py-4">
-          <PanelLabel>Evidence</PanelLabel>
+        <section className="px-4 py-4 sm:px-5">
+          <PanelLabel>Evidence chain</PanelLabel>
           <ul className="mt-2 space-y-1">
             {item.evidence.map((entry, index) => (
               <li key={index}>
@@ -266,20 +273,20 @@ export function InvestigationPanel({
                   type="button"
                   disabled={entry.target === null}
                   onClick={() => entry.target && onOpenRecord(entry.target)}
-                  className={`flex w-full items-start gap-2.5 rounded-md px-2 py-1.5 text-left ${
+                  className={`flex w-full items-start gap-2.5 rounded-sm px-2 py-1.5 text-left ${
                     entry.target
-                      ? 'cursor-pointer hover:bg-zinc-50'
+                      ? 'cursor-pointer hover:bg-surface-muted focus-visible:ring-2 focus-visible:ring-ring'
                       : 'cursor-default'
                   }`}
                 >
-                  <code className="mt-0.5 shrink-0 rounded-sm bg-zinc-100 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-zinc-500">
+                  <code className="mt-0.5 shrink-0 rounded-sm bg-surface-muted px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-foreground-muted ring-1 ring-inset ring-border">
                     {entry.label.replace(/_/g, ' ')}
                   </code>
-                  <span className="min-w-0 flex-1 text-[13px] leading-relaxed text-zinc-700">
+                  <span className="min-w-0 flex-1 text-secondary leading-relaxed text-foreground">
                     {entry.detail}
                   </span>
                   {entry.target ? (
-                    <span className="mt-0.5 shrink-0 text-xs font-medium text-zinc-400">view →</span>
+                    <span className="mt-0.5 shrink-0 text-meta font-medium text-foreground-muted">view →</span>
                   ) : null}
                 </button>
               </li>
@@ -289,7 +296,7 @@ export function InvestigationPanel({
       ) : null}
 
       {item.relatedRecords.length > 0 ? (
-        <section className="px-5 py-4">
+        <section className="px-4 py-4 sm:px-5">
           <PanelLabel>Related records</PanelLabel>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {item.relatedRecords.map((record) => (
@@ -300,21 +307,13 @@ export function InvestigationPanel({
       ) : null}
 
       {item.settlement && item.settlement.lines.length > 0 ? (
-        <section className="px-5 py-4">
+        <section className="px-4 py-4 sm:px-5">
           <PanelLabel>Settlement lines</PanelLabel>
-          <table className="mt-2 w-full text-[13px]">
-            <thead>
-              <tr className="border-b border-zinc-200 text-left text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-                <th className="pb-1.5 pr-2 font-semibold">Type</th>
-                <th className="pb-1.5 pr-2 font-semibold">Description</th>
-                <th className="pb-1.5 pr-2 text-right font-semibold">Amount</th>
-                <th className="pb-1.5" />
-              </tr>
-            </thead>
-            <tbody>
-              {item.settlement.lines.map((line) => (
-                <tr
-                  key={line.id}
+          <ul className="mt-2 divide-y divide-border/60">
+            {item.settlement.lines.map((line) => (
+              <li key={line.id}>
+                <button
+                  type="button"
                   onClick={() =>
                     onOpenRecord({
                       sourceType: 'settlement_line',
@@ -322,43 +321,43 @@ export function InvestigationPanel({
                       label: `Settlement line ·${line.id.slice(0, 4)}`,
                     })
                   }
-                  className="cursor-pointer border-b border-zinc-100 last:border-b-0 hover:bg-zinc-50"
+                  className="flex w-full items-center gap-3 rounded-sm py-1.5 text-left hover:bg-surface-muted/60 focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  <td className="py-1.5 pr-2">
-                    <span className="rounded-sm bg-zinc-100 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-zinc-500">
-                      {line.type}
-                    </span>
-                  </td>
-                  <td className="max-w-[14rem] truncate py-1.5 pr-2 text-zinc-700">{line.description}</td>
-                  <td className="py-1.5 pr-2 text-right font-mono tabular-nums text-zinc-800">
+                  <span className="w-20 shrink-0 truncate rounded-sm bg-surface-muted px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-foreground-muted ring-1 ring-inset ring-border">
+                    {line.type}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-secondary text-foreground">
+                    {line.description}
+                  </span>
+                  <Num className="shrink-0 text-secondary text-foreground">
                     {formatSignedCents(line.amountCents, item.currency)}
-                  </td>
-                  <td className="w-6 py-1.5 text-right text-zinc-300">→</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </Num>
+                  <span aria-hidden className="shrink-0 text-foreground-muted/50">→</span>
+                </button>
+              </li>
+            ))}
+          </ul>
         </section>
       ) : null}
 
       {item.explanation ? (
-        <section className="px-5 py-4">
+        <section className="px-4 py-4 sm:px-5">
           <PanelLabel>Reconciler summary</PanelLabel>
-          <p className="mt-1.5 text-[13px] italic leading-relaxed text-muted-foreground">
+          <p className="mt-1.5 text-secondary italic leading-relaxed text-foreground-muted">
             {item.explanation}
           </p>
         </section>
       ) : null}
 
       {item.proposalId ? (
-        <section className="flex items-center justify-between gap-3 bg-zinc-50/60 px-5 py-3">
-          <span className="text-[13px] text-muted-foreground">
-            Proposal <span className="font-mono text-xs">{item.proposalId.slice(0, 8)}…</span>
+        <section className="flex flex-wrap items-center justify-between gap-3 bg-surface-muted/60 px-4 py-3 sm:px-5">
+          <span className="text-secondary text-foreground-muted">
+            Proposal <span className="font-mono text-meta">{item.proposalId.slice(0, 8)}…</span>
             {item.proposalStatus ? ` · ${item.proposalStatus}` : ''}
           </span>
           <Link
             href={`/reconciliation/${item.proposalId}`}
-            className="rounded-md bg-zinc-900 px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-zinc-700"
+            className="inline-flex items-center rounded-sm bg-primary px-3 py-1.5 text-secondary font-semibold text-white hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
           >
             Open proposal
           </Link>
@@ -379,7 +378,7 @@ function RelatedChipRow({
     return (
       <Link
         href={`/reconciliation/${record.recordId}`}
-        className="inline-flex items-center gap-1 rounded-md border border-zinc-200 px-2 py-1 font-mono text-[11px] text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50"
+        className="inline-flex items-center gap-1 rounded-sm border border-border bg-surface px-2 py-1 font-mono text-meta text-foreground hover:border-border-strong hover:bg-surface-muted focus-visible:ring-2 focus-visible:ring-ring"
       >
         {record.label} ↗
       </Link>
@@ -390,7 +389,7 @@ function RelatedChipRow({
     <button
       type="button"
       onClick={() => onOpenRecord(record)}
-      className="inline-flex items-center gap-1 rounded-md border border-zinc-200 px-2 py-1 font-mono text-[11px] text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50"
+      className="inline-flex items-center gap-1 rounded-sm border border-border bg-surface px-2 py-1 font-mono text-meta text-foreground hover:border-border-strong hover:bg-surface-muted focus-visible:ring-2 focus-visible:ring-ring"
     >
       {record.label} ↗
     </button>

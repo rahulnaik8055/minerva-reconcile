@@ -2,7 +2,10 @@
 
 import Link from 'next/link';
 import { useEffect } from 'react';
-import { PanelLabel } from '@/components/layout/page-header';
+import { X } from 'lucide-react';
+import { FieldList } from '@/components/ui/data';
+import { PanelLabel } from '@/components/ui/panel';
+import { Button } from '@/components/ui/button';
 import { useRecord } from '../../hooks/use-review';
 import type { ExceptionRelatedRecord } from '../../types';
 
@@ -28,6 +31,8 @@ export function RecordDrawer({
       return;
     }
 
+    document.body.style.overflow = 'hidden';
+
     const handler = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose();
@@ -36,7 +41,10 @@ export function RecordDrawer({
 
     window.addEventListener('keydown', handler);
 
-    return () => window.removeEventListener('keydown', handler);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handler);
+    };
   }, [open, onClose]);
 
   if (!open) {
@@ -44,67 +52,56 @@ export function RecordDrawer({
   }
 
   return (
-    <>
+    <div className="fixed inset-0 z-50">
       <button
         type="button"
         aria-label="Close record detail"
         onClick={onClose}
-        className="fixed inset-0 z-40 cursor-default bg-zinc-900/30"
+        className="absolute inset-0 cursor-default bg-foreground/25 animate-fade-in"
       />
 
-      <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-zinc-200 bg-white shadow-2xl">
-        <header className="flex items-start justify-between gap-3 border-b border-zinc-200 px-5 py-4">
+      <aside
+        role="dialog"
+        aria-modal="true"
+        className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col border-l border-border bg-surface shadow-xl animate-fade-in"
+      >
+        <header className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
           <div className="min-w-0">
             <PanelLabel>{data?.sourceType.replace(/_/g, ' ') ?? 'Record'}</PanelLabel>
             {isLoading ? (
-              <div className="mt-1 h-5 w-48 animate-pulse rounded bg-zinc-100" />
+              <div className="mt-1 h-5 w-48 animate-pulse rounded-sm bg-surface-muted" />
             ) : (
-              <h2 className="truncate text-[15px] font-semibold text-zinc-900">{data?.title}</h2>
+              <h2 className="truncate text-body font-semibold text-foreground">{data?.title}</h2>
             )}
             {!isLoading && data?.subtitle ? (
-              <p className="truncate text-[13px] text-muted-foreground">{data.subtitle}</p>
+              <p className="truncate text-secondary text-foreground-muted">{data.subtitle}</p>
             ) : null}
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-              <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-          </button>
+          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close record detail" autoFocus>
+            <X className="h-4 w-4" />
+          </Button>
         </header>
 
-        <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
-          {isLoading ? <p className="text-sm text-muted-foreground">Loading record…</p> : null}
+        <div className="scrollbar-thin flex-1 space-y-5 overflow-y-auto px-5 py-4">
+          {isLoading ? <p className="text-secondary text-foreground-muted">Loading record…</p> : null}
 
-          {isError ? <p className="text-sm text-red-600">Could not load this record.</p> : null}
+          {isError ? <p className="text-secondary text-danger-text">Could not load this record.</p> : null}
 
           {data ? (
             <>
-              <dl>
-                {data.fields.map((field) => (
-                  <div
-                    key={field.label}
-                    className="flex items-baseline justify-between gap-4 border-b border-zinc-100 py-2 last:border-b-0"
-                  >
-                    <dt className="shrink-0 text-xs font-medium uppercase tracking-wide text-zinc-500">
-                      {field.label}
-                    </dt>
-                    <dd className="break-words text-right font-mono text-[13px] tabular-nums text-zinc-800">
-                      {field.value}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
+              <FieldList
+                items={data.fields.map((field) => ({
+                  label: field.label,
+                  value: field.value,
+                }))}
+              />
 
               {data.importFilename || data.sourceRow !== null ? (
-                <div className="rounded-md bg-zinc-50 px-3 py-2 text-xs text-muted-foreground ring-1 ring-inset ring-zinc-200">
+                <p className="rounded-sm bg-surface-muted px-3 py-2 text-meta text-foreground-muted ring-1 ring-inset ring-border">
                   Provenance: {data.importFilename ?? 'unknown file'}
                   {data.sourceRow !== null ? ` · row ${data.sourceRow}` : ''}
-                </div>
+                </p>
               ) : null}
 
               {data.parent ? (
@@ -113,7 +110,7 @@ export function RecordDrawer({
                   <button
                     type="button"
                     onClick={() => onNavigate({ ...data.parent!, label: data.parent!.label })}
-                    className="mt-1.5 w-full rounded-md border border-zinc-200 px-3 py-2 text-left text-[13px] font-medium text-zinc-800 hover:border-zinc-300 hover:bg-zinc-50"
+                    className="mt-1.5 w-full rounded-sm border border-border px-3 py-2 text-left text-secondary font-medium text-foreground hover:border-border-strong hover:bg-surface-muted focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     {data.parent.label} →
                   </button>
@@ -128,10 +125,10 @@ export function RecordDrawer({
                       <li key={proposal.id}>
                         <Link
                           href={`/reconciliation/${proposal.id}`}
-                          className="flex items-center justify-between rounded-md border border-zinc-200 px-3 py-2 text-[13px] hover:border-zinc-300 hover:bg-zinc-50"
+                          className="flex items-center justify-between rounded-sm border border-border px-3 py-2 text-secondary hover:border-border-strong hover:bg-surface-muted focus-visible:ring-2 focus-visible:ring-ring"
                         >
-                          <span className="font-mono text-xs text-zinc-600">{proposal.id.slice(0, 8)}…</span>
-                          <span className="font-medium capitalize text-zinc-800">{proposal.status}</span>
+                          <span className="font-mono text-meta text-foreground-muted">{proposal.id.slice(0, 8)}…</span>
+                          <span className="font-medium capitalize text-foreground">{proposal.status}</span>
                         </Link>
                       </li>
                     ))}
@@ -142,6 +139,6 @@ export function RecordDrawer({
           ) : null}
         </div>
       </aside>
-    </>
+    </div>
   );
 }

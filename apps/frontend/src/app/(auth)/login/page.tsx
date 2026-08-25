@@ -8,21 +8,27 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-12">
-      <div className="w-full max-w-sm space-y-8 rounded-lg border bg-card p-8 shadow-sm">
-        <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-bold">Welcome back</h1>
-          <p className="text-sm text-muted-foreground">Sign in to continue to your workspace</p>
-        </div>
-
-        <LoginForm />
-
-        <p className="text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{' '}
-          <Link href="/register" className="font-medium text-primary hover:underline">
-            Create one
-          </Link>
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
+      <div className="w-full max-w-sm">
+        <p className="mb-6 text-center font-serif text-base font-semibold tracking-tight text-foreground">
+          Reconcile
         </p>
+
+        <div className="space-y-8 rounded-md border border-border bg-surface p-6 sm:p-8">
+          <div className="space-y-1.5 text-center">
+            <h1 className="font-serif text-title font-semibold tracking-tight text-foreground">Welcome back</h1>
+            <p className="text-secondary text-foreground-muted">Sign in to continue to your workspace</p>
+          </div>
+
+          <LoginForm />
+
+          <p className="text-center text-secondary text-foreground-muted">
+            Don&apos;t have an account?{' '}
+            <Link href="/register" className="font-medium text-primary underline-offset-2 hover:underline">
+              Create one
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

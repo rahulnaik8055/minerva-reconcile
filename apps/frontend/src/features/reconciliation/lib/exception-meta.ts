@@ -1,3 +1,4 @@
+import type { BadgeTone } from '@/components/ui/badge';
 import type { ExceptionStatus, ExceptionType } from '../types';
 
 export const EXCEPTION_TYPE_ORDER: ExceptionType[] = [
@@ -24,16 +25,16 @@ export const EXCEPTION_TYPE_LABELS: Record<ExceptionType, string> = {
   ambiguous_match: 'Ambiguous match',
 };
 
-export const EXCEPTION_TYPE_DOT: Record<ExceptionType, string> = {
-  unmatched: 'bg-zinc-400',
-  amount_mismatch: 'bg-red-500',
-  duplicate_candidate: 'bg-amber-500',
-  missing_invoice: 'bg-sky-500',
-  missing_settlement: 'bg-red-700',
-  short_pay: 'bg-orange-500',
-  deduction: 'bg-violet-500',
-  date_mismatch: 'bg-yellow-500',
-  ambiguous_match: 'bg-fuchsia-500',
+export const EXCEPTION_TYPE_TONE: Record<ExceptionType, BadgeTone> = {
+  unmatched: 'neutral',
+  amount_mismatch: 'danger',
+  duplicate_candidate: 'warning',
+  missing_invoice: 'info',
+  missing_settlement: 'danger',
+  short_pay: 'warning',
+  deduction: 'info',
+  date_mismatch: 'neutral',
+  ambiguous_match: 'warning',
 };
 
 export const EXCEPTION_STATUS_LABELS: Record<ExceptionStatus, string> = {
@@ -42,16 +43,11 @@ export const EXCEPTION_STATUS_LABELS: Record<ExceptionStatus, string> = {
   resolved: 'Resolved',
 };
 
-export function exceptionStatusClasses(status: ExceptionStatus): string {
-  switch (status) {
-    case 'open':
-      return 'bg-red-50 text-red-700 ring-red-200';
-    case 'in_review':
-      return 'bg-amber-50 text-amber-800 ring-amber-200';
-    case 'resolved':
-      return 'bg-emerald-50 text-emerald-700 ring-emerald-200';
-  }
-}
+export const EXCEPTION_STATUS_TONE: Record<ExceptionStatus, BadgeTone> = {
+  open: 'danger',
+  in_review: 'warning',
+  resolved: 'success',
+};
 
 const CAUSE_LABELS: Record<string, string> = {
   fee_line: 'Fee',

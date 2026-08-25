@@ -10,7 +10,7 @@ export function Alert({ children, className }: AlertProps) {
     <div
       role="alert"
       className={cn(
-        'rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive',
+        'rounded-sm border border-danger-border bg-danger-bg px-3 py-2 text-secondary text-danger-text',
         className,
       )}
     >

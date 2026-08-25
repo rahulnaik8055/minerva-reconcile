@@ -8,21 +8,27 @@ export const metadata: Metadata = {
 
 export default function RegisterPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-12">
-      <div className="w-full max-w-sm space-y-8 rounded-lg border bg-card p-8 shadow-sm">
-        <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-bold">Create your account</h1>
-          <p className="text-sm text-muted-foreground">Create your account to get started</p>
-        </div>
-
-        <RegisterForm />
-
-        <p className="text-center text-sm text-muted-foreground">
-          Already have an account?{' '}
-          <Link href="/login" className="font-medium text-primary hover:underline">
-            Sign in
-          </Link>
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
+      <div className="w-full max-w-sm">
+        <p className="mb-6 text-center font-serif text-base font-semibold tracking-tight text-foreground">
+          Reconcile
         </p>
+
+        <div className="space-y-8 rounded-md border border-border bg-surface p-6 sm:p-8">
+          <div className="space-y-1.5 text-center">
+            <h1 className="font-serif text-title font-semibold tracking-tight text-foreground">Create your account</h1>
+            <p className="text-secondary text-foreground-muted">Set up your reconciliation workspace</p>
+          </div>
+
+          <RegisterForm />
+
+          <p className="text-center text-secondary text-foreground-muted">
+            Already have an account?{' '}
+            <Link href="/login" className="font-medium text-primary underline-offset-2 hover:underline">
+              Sign in
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

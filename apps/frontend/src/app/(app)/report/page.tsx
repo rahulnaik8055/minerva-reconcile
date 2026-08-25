@@ -2,13 +2,17 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { PageHeader, PanelLabel, EmptyState } from '@/components/layout/page-header';
+import { PageHeader, EmptyState } from '@/components/layout/page-header';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Panel, PanelHeader } from '@/components/ui/panel';
+import { Table, TableWrap, Td, Th } from '@/components/ui/table';
 import { StatusChip, ConfidenceBar } from '@/features/reconciliation/components/status-chip';
 import {
-  EXCEPTION_TYPE_DOT,
   EXCEPTION_TYPE_LABELS,
-  exceptionStatusClasses,
+  EXCEPTION_TYPE_TONE,
   EXCEPTION_STATUS_LABELS,
+  EXCEPTION_STATUS_TONE,
 } from '@/features/reconciliation/lib/exception-meta';
 import {
   buildDecisionsCsv,
@@ -18,27 +22,6 @@ import {
 } from '@/features/reconciliation/lib/report-export';
 import { formatCents, formatDate, formatSignedCents } from '@/features/reconciliation/lib/format';
 import { useExceptions, useSummary, useWorklist } from '@/features/reconciliation/hooks/use-review';
-
-function ExportButton({
-  label,
-  onClick,
-  disabled,
-}: {
-  label: string;
-  onClick: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-[13px] font-semibold text-zinc-800 hover:bg-zinc-50 disabled:opacity-50"
-    >
-      {label}
-    </button>
-  );
-}
 
 export default function ReportPage() {
   const summary = useSummary();
@@ -60,14 +43,14 @@ export default function ReportPage() {
   const stats = s
     ? [
         { label: 'Total transactions', value: String(s.totalBankTransactions) },
-        { label: 'Accepted', value: String(s.accepted), tone: 'text-emerald-700' },
-        { label: 'Rejected', value: String(s.rejected), tone: 'text-red-600' },
-        { label: 'Overridden', value: String(s.overridden), tone: 'text-amber-600' },
+        { label: 'Matched', value: String(s.accepted), tone: 'text-success-text' },
+        { label: 'Rejected', value: String(s.rejected), tone: 'text-danger-text' },
+        { label: 'Overridden', value: String(s.overridden), tone: 'text-warning-text' },
         { label: 'Unmatched', value: String(s.unmatchedBankTransactions) },
         {
           label: 'Unresolved value',
           value: formatCents(Number(s.unresolvedValueCents)),
-          tone: Number(s.unresolvedValueCents) > 0 ? 'text-red-600' : undefined,
+          tone: Number(s.unresolvedValueCents) > 0 ? 'text-danger-text' : undefined,
         },
       ]
     : [];
@@ -114,31 +97,37 @@ export default function ReportPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageHeader
         title="Report"
-        subtitle="Reviewed decisions only — pending proposals are excluded until a reviewer decides."
+        description="Reviewed decisions only — pending proposals are excluded until a reviewer decides."
         actions={
-          <div className="flex gap-2">
-            <ExportButton label="Export CSV" onClick={exportCsv} disabled={loading || decisions.length === 0} />
-            <ExportButton label="Export JSON" onClick={exportJson} disabled={loading || !s} />
+          <div className="flex gap-2 print:hidden">
+            <Button variant="outline" size="lg" onClick={exportCsv} disabled={loading || decisions.length === 0}>
+              Export CSV
+            </Button>
+            <Button variant="outline" size="lg" onClick={exportJson} disabled={loading || !s}>
+              Export JSON
+            </Button>
           </div>
         }
       />
 
       {s ? (
-        <dl className="flex flex-wrap rounded-md border border-zinc-200 bg-white">
+        <dl className="flex flex-wrap overflow-hidden rounded-md border border-border bg-surface" data-testid="report-summary">
           {stats.map((stat) => (
-            <div key={stat.label} className="min-w-32 flex-1 border-l border-zinc-200 px-4 py-3 first:border-l-0">
-              <dt className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">{stat.label}</dt>
-              <dd className={`mt-1 font-mono text-xl tabular-nums ${stat.tone ?? 'text-zinc-900'}`}>{stat.value}</dd>
+            <div key={stat.label} className="min-w-36 flex-1 border-l border-border px-4 py-3 first:border-l-0 sm:px-5">
+              <dt className="text-label font-semibold uppercase text-foreground-muted">{stat.label}</dt>
+              <dd className={`tabular mt-1.5 font-serif text-lg leading-none tracking-tight ${stat.tone ?? 'text-foreground'}`}>
+                {stat.value}
+              </dd>
             </div>
           ))}
         </dl>
       ) : loading ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">Compiling report…</p>
+        <p className="py-10 text-center text-secondary text-foreground-muted">Compiling report…</p>
       ) : (
-        <p className="py-8 text-center text-sm text-red-600">Could not load report data.</p>
+        <p className="py-10 text-center text-secondary text-danger-text">Could not load report data.</p>
       )}
 
       {!loading && s !== undefined && s.accepted + s.rejected === 0 ? (
@@ -149,166 +138,164 @@ export default function ReportPage() {
           actionLabel="Open Reconciliation"
         />
       ) : decisions.length > 0 ? (
-        <section className="overflow-hidden rounded-md border border-zinc-200 bg-white">
-          <header className="border-b border-zinc-200 px-4 py-2">
-            <PanelLabel>{decisions.length} reviewed decision(s)</PanelLabel>
-          </header>
+        <Panel className="overflow-hidden">
+          <PanelHeader title={`${decisions.length} reviewed decision${decisions.length === 1 ? '' : 's'}`} />
 
-          <table className="w-full border-collapse text-[13px]">
-            <thead>
-              <tr className="border-b border-zinc-200 text-left text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-                <th className="px-4 py-2 font-semibold">Bank transaction</th>
-                <th className="px-4 py-2 font-semibold">Matched record</th>
-                <th className="px-4 py-2 text-right font-semibold">Amount</th>
-                <th className="px-4 py-2 font-semibold">Confidence</th>
-                <th className="px-4 py-2 font-semibold">Status</th>
-                <th className="px-4 py-2 font-semibold">Rationale</th>
-                <th className="px-4 py-2 font-semibold">Reviewer</th>
-                <th className="px-4 py-2 font-semibold">Reviewed at</th>
-              </tr>
-            </thead>
-            <tbody>
-              {decisions.map((item) => (
-                <tr key={item.key} className="border-b border-zinc-100 last:border-b-0 hover:bg-zinc-50/70">
-                  <td className="max-w-56 px-4 py-2">
-                    <Link
-                      href={`/reconciliation/${item.proposalId}`}
-                      className="block truncate font-medium text-zinc-800 underline-offset-2 hover:underline"
-                    >
-                      {item.description}
-                    </Link>
-                    <span className="block truncate text-xs text-muted-foreground">
-                      {formatDate(item.date)}
-                      {item.reference ? ` · ${item.reference}` : ''}
-                    </span>
-                  </td>
-                  <td className="max-w-44 truncate px-4 py-2 text-zinc-700" title={item.bestMatch?.label ?? ''}>
-                    {item.bestMatch?.label ?? <span className="text-zinc-300">—</span>}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-2 text-right font-mono tabular-nums text-zinc-900">
-                    {formatCents(item.amountCents, item.currency)}
-                  </td>
-                  <td className="px-4 py-2">
-                    {item.score !== null ? (
-                      <span className="flex w-24 items-center gap-1.5">
-                        <ConfidenceBar score={item.score} />
-                        <span className="font-mono text-xs tabular-nums text-zinc-500">
-                          {Math.round(item.score * 100)}%
-                        </span>
-                      </span>
-                    ) : (
-                      <span className="text-zinc-300">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2">
-                    <StatusChip status={item.status === 'accepted' ? 'accepted' : 'rejected'} />
-                  </td>
-                  <td className="max-w-56 px-4 py-2">
-                    {item.rationaleText ? (
-                      <span className="block truncate text-zinc-600" title={item.rationaleText}>
-                        {item.rationaleText}
-                      </span>
-                    ) : (
-                      <span className="text-zinc-300">—</span>
-                    )}
-                  </td>
-                  <td className="max-w-36 truncate px-4 py-2 text-zinc-700" title={item.decidedBy ?? ''}>
-                    {item.decidedBy ?? <span className="text-zinc-300">—</span>}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-2 font-mono text-xs tabular-nums text-zinc-600">
-                    {item.decidedAt ? formatDate(item.decidedAt) : '—'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
-      ) : null}
-
-      {!loading && (exceptions.data?.items.length ?? 0) > 0 ? (
-        <section className="overflow-hidden rounded-md border border-zinc-200 bg-white">
-          <header className="flex items-center justify-between border-b border-zinc-200 px-4 py-2">
-            <PanelLabel>{exceptions.data!.items.length} open exception(s)</PanelLabel>
-            <button
-              type="button"
-              onClick={() => setShowExceptions((current) => !current)}
-              className="text-xs font-medium text-zinc-500 hover:text-zinc-900"
-            >
-              {showExceptions ? 'Hide' : 'Show'}
-            </button>
-          </header>
-
-          {showExceptions ? (
-            <table className="w-full border-collapse text-[13px]">
+          <TableWrap>
+            <Table className="min-w-[52rem]">
               <thead>
-                <tr className="border-b border-zinc-200 text-left text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-                  <th className="px-4 py-2 font-semibold">Exception</th>
-                  <th className="px-4 py-2 text-right font-semibold">Amount</th>
-                  <th className="px-4 py-2 font-semibold">Evidence</th>
-                  <th className="px-4 py-2 font-semibold">Resolution</th>
+                <tr>
+                  <Th>Bank transaction</Th>
+                  <Th className="hidden md:table-cell">Matched record</Th>
+                  <Th numeric>Amount</Th>
+                  <Th className="hidden xl:table-cell">Confidence</Th>
+                  <Th>Status</Th>
+                  <Th className="hidden lg:table-cell">Rationale</Th>
+                  <Th className="hidden lg:table-cell">Reviewer</Th>
+                  <Th numeric className="hidden sm:table-cell">Reviewed at</Th>
                 </tr>
               </thead>
               <tbody>
-                {exceptions.data!.items.map((item) => (
-                  <tr key={item.id} className="border-b border-zinc-100 last:border-b-0 hover:bg-zinc-50/70">
-                    <td className="px-4 py-2">
-                      <span className="flex items-center gap-1.5 font-medium text-zinc-800">
-                        <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${EXCEPTION_TYPE_DOT[item.exceptionType]}`} />
-                        {EXCEPTION_TYPE_LABELS[item.exceptionType]}
+                {decisions.map((item) => (
+                  <tr key={item.key} className="last:border-b-0 transition-colors hover:bg-surface-muted/60">
+                    <Td className="max-w-56">
+                      <Link
+                        href={`/reconciliation/${item.proposalId}`}
+                        className="block truncate font-medium text-foreground underline-offset-2 hover:text-primary hover:underline"
+                      >
+                        {item.description}
+                      </Link>
+                      <span className="tabular block truncate text-meta text-foreground-muted">
+                        {formatDate(item.date)}
+                        {item.reference ? ` · ${item.reference}` : ''}
                       </span>
-                      <span className="block max-w-64 truncate text-xs text-muted-foreground" title={item.title}>
-                        {item.title}
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-right font-mono tabular-nums">
-                      <span className="block text-zinc-900">{formatCents(item.amountCents, item.currency)}</span>
-                      {item.varianceCents !== null ? (
-                        <span
-                          className={`block text-xs ${
-                            item.varianceCents === 0 ? 'text-emerald-700' : 'text-red-600'
-                          }`}
-                        >
-                          {formatSignedCents(item.varianceCents, item.currency)}
-                        </span>
-                      ) : null}
-                    </td>
-                    <td className="max-w-80 px-4 py-2">
-                      {item.evidence.length > 0 ? (
-                        <span
-                          className="block truncate font-mono text-[11px] text-zinc-500"
-                          title={item.evidence.map((entry) => `${entry.label}: ${entry.detail}`).join('\n')}
-                        >
-                          {item.evidence[0]?.label.replace(/_/g, ' ')}: {item.evidence[0]?.detail}
-                          {item.evidence.length > 1 ? ` (+${item.evidence.length - 1} more)` : ''}
+                    </Td>
+                    <Td className="hidden max-w-44 truncate md:table-cell" title={item.bestMatch?.label ?? ''}>
+                      {item.bestMatch?.label ?? <span className="text-foreground-muted/50">—</span>}
+                    </Td>
+                    <Td numeric className="whitespace-nowrap font-medium">
+                      {formatCents(item.amountCents, item.currency)}
+                    </Td>
+                    <Td className="hidden whitespace-nowrap xl:table-cell">
+                      {item.score !== null ? (
+                        <ConfidenceBar score={item.score} />
+                      ) : (
+                        <span className="text-foreground-muted/50">—</span>
+                      )}
+                    </Td>
+                    <Td>
+                      <StatusChip status={item.status === 'accepted' ? 'accepted' : 'rejected'} />
+                    </Td>
+                    <Td className="hidden max-w-56 lg:table-cell">
+                      {item.rationaleText ? (
+                        <span className="block truncate text-foreground-muted" title={item.rationaleText}>
+                          {item.rationaleText}
                         </span>
                       ) : (
-                        <span className="text-zinc-300">—</span>
+                        <span className="text-foreground-muted/50">—</span>
                       )}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2">
-                      <span
-                        className={`inline-block rounded-sm px-1.5 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${exceptionStatusClasses(item.status)}`}
-                      >
-                        {EXCEPTION_STATUS_LABELS[item.status]}
-                      </span>
-                      {item.proposalId ? (
-                        <Link
-                          href={`/reconciliation/${item.proposalId}`}
-                          className="ml-2 font-mono text-[11px] text-zinc-500 underline-offset-2 hover:text-zinc-900 hover:underline"
-                        >
-                          proposal ↗
-                        </Link>
-                      ) : null}
-                    </td>
+                    </Td>
+                    <Td className="hidden max-w-36 truncate lg:table-cell" title={item.decidedBy ?? ''}>
+                      {item.decidedBy ?? <span className="text-foreground-muted/50">—</span>}
+                    </Td>
+                    <Td numeric className="hidden whitespace-nowrap tabular text-meta text-foreground-muted sm:table-cell">
+                      {item.decidedAt ? formatDate(item.decidedAt) : '—'}
+                    </Td>
                   </tr>
                 ))}
               </tbody>
-            </table>
-          ) : null}
-        </section>
+            </Table>
+          </TableWrap>
+        </Panel>
       ) : null}
 
-      <p className="text-xs text-muted-foreground">
+      {!loading && (exceptions.data?.items.length ?? 0) > 0 ? (
+        <Panel className="overflow-hidden">
+          <PanelHeader
+            title={`${exceptions.data!.items.length} exception${exceptions.data!.items.length === 1 ? '' : 's'}`}
+            actions={
+              <button
+                type="button"
+                onClick={() => setShowExceptions((current) => !current)}
+                aria-expanded={showExceptions}
+                className="print:hidden text-meta font-medium text-foreground-muted hover:text-foreground"
+              >
+                {showExceptions ? 'Hide' : 'Show'}
+              </button>
+            }
+          />
+
+          {showExceptions ? (
+            <TableWrap>
+              <Table className="min-w-[40rem]">
+                <thead>
+                  <tr>
+                    <Th>Exception</Th>
+                    <Th numeric>Amount</Th>
+                    <Th className="hidden lg:table-cell">Evidence</Th>
+                    <Th>Resolution</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {exceptions.data!.items.map((item) => (
+                    <tr key={item.id} className="last:border-b-0 transition-colors hover:bg-surface-muted/60">
+                      <Td>
+                        <span className="flex items-center gap-1.5 font-medium text-foreground">
+                          <Badge tone={EXCEPTION_TYPE_TONE[item.exceptionType]} dot aria-hidden />
+                          {EXCEPTION_TYPE_LABELS[item.exceptionType]}
+                        </span>
+                        <span className="block max-w-64 truncate text-meta text-foreground-muted" title={item.title}>
+                          {item.title}
+                        </span>
+                      </Td>
+                      <Td numeric className="whitespace-nowrap">
+                        <span className="block font-medium">{formatCents(item.amountCents, item.currency)}</span>
+                        {item.varianceCents !== null ? (
+                          <span
+                            className={`tabular block text-meta ${
+                              item.varianceCents === 0 ? 'text-success-text' : 'text-danger-text'
+                            }`}
+                          >
+                            {formatSignedCents(item.varianceCents, item.currency)}
+                          </span>
+                        ) : null}
+                      </Td>
+                      <Td className="hidden max-w-80 lg:table-cell">
+                        {item.evidence.length > 0 ? (
+                          <span
+                            className="block truncate font-mono text-meta text-foreground-muted"
+                            title={item.evidence.map((entry) => `${entry.label}: ${entry.detail}`).join('\n')}
+                          >
+                            {item.evidence[0]?.label.replace(/_/g, ' ')}: {item.evidence[0]?.detail}
+                            {item.evidence.length > 1 ? ` (+${item.evidence.length - 1} more)` : ''}
+                          </span>
+                        ) : (
+                          <span className="text-foreground-muted/50">—</span>
+                        )}
+                      </Td>
+                      <Td className="whitespace-nowrap">
+                        <Badge tone={EXCEPTION_STATUS_TONE[item.status]}>
+                          {EXCEPTION_STATUS_LABELS[item.status]}
+                        </Badge>
+                        {item.proposalId ? (
+                          <Link
+                            href={`/reconciliation/${item.proposalId}`}
+                            className="ml-2 font-mono text-meta text-foreground-muted underline-offset-2 hover:text-primary hover:underline print:hidden"
+                          >
+                            proposal ↗
+                          </Link>
+                        ) : null}
+                      </Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </TableWrap>
+          ) : null}
+        </Panel>
+      ) : null}
+
+      <p className="text-meta text-foreground-muted">
         Generated {new Date().toLocaleString()} · exports reflect persisted database state at time of export.
       </p>
     </div>

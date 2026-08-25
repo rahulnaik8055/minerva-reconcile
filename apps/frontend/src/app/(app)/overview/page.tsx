@@ -1,7 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { PageHeader, PanelLabel, EmptyState } from '@/components/layout/page-header';
+import { PageHeader, EmptyState } from '@/components/layout/page-header';
+import { Button } from '@/components/ui/button';
+import { Panel, PanelHeader } from '@/components/ui/panel';
+import { Table, TableWrap, Td, Th } from '@/components/ui/table';
 import { SummaryStrip } from '@/features/reconciliation/components/summary-strip';
 import { useActivity, useExceptions, useWorklist } from '@/features/reconciliation/hooks/use-review';
 import { formatCents, formatDate, formatDateTime } from '@/features/reconciliation/lib/format';
@@ -9,7 +12,10 @@ import { StatusChip, OutcomeChip } from '@/features/reconciliation/components/st
 
 function ShortHash({ hash }: { hash: string }) {
   return (
-    <code className="rounded-sm bg-zinc-100 px-1 py-0.5 font-mono text-[11px] text-zinc-500" title={hash}>
+    <code
+      className="rounded-sm bg-surface-muted px-1 py-0.5 font-mono text-meta text-foreground-muted"
+      title={hash}
+    >
       {hash.slice(0, 10)}…
     </code>
   );
@@ -23,33 +29,32 @@ export default function OverviewPage() {
   const pendingExceptionCount = exceptions.data?.exceptionCount ?? null;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageHeader
         title="Overview"
-        subtitle="Current state of the reconciliation cycle. Nothing posts without a human decision."
+        description="Current state of the reconciliation cycle. Nothing posts without a human decision."
         actions={
-          <Link
-            href="/reconciliation"
-            className="rounded-md bg-zinc-900 px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-zinc-700"
-          >
-            Open Reconciliation
+          <Link href="/reconciliation" className="print:hidden">
+            <Button size="lg">Open Reconciliation</Button>
           </Link>
         }
       />
 
       <SummaryStrip />
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <section className="rounded-md border border-zinc-200 bg-white lg:col-span-2">
-          <header className="flex items-center justify-between border-b border-zinc-200 px-4 py-2">
-            <PanelLabel>Latest items awaiting or receiving decisions</PanelLabel>
-            <Link href="/reconciliation" className="text-xs font-medium text-zinc-500 hover:text-zinc-900">
-              View all →
-            </Link>
-          </header>
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-3">
+        <Panel className="overflow-hidden lg:col-span-2">
+          <PanelHeader
+            title="Latest items awaiting or receiving decisions"
+            actions={
+              <Link href="/reconciliation" className="text-meta font-medium text-foreground-muted hover:text-foreground">
+                View all →
+              </Link>
+            }
+          />
 
           {worklist.isLoading ? (
-            <p className="px-4 py-8 text-center text-sm text-muted-foreground">Loading…</p>
+            <p className="px-4 py-10 text-center text-secondary text-foreground-muted" aria-busy>Loading…</p>
           ) : (worklist.data?.items.length ?? 0) === 0 ? (
             <div className="p-4">
               <EmptyState
@@ -60,101 +65,112 @@ export default function OverviewPage() {
               />
             </div>
           ) : (
-            <table className="w-full border-collapse text-[13px]">
-              <thead>
-                <tr className="border-b border-zinc-200 text-left text-[11px] font-semibold uppercase tracking-widest text-zinc-500">
-                  <th className="px-3 py-2 font-semibold">Status</th>
-                  <th className="px-3 py-2 font-semibold">Date</th>
-                  <th className="px-3 py-2 font-semibold">Description</th>
-                  <th className="px-3 py-2 text-right font-semibold">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(worklist.data?.items ?? []).map((item) => (
-                  <tr key={item.key} className="border-b border-zinc-100 last:border-b-0 hover:bg-zinc-50/70">
-                    <td className="px-3 py-1.5"><StatusChip status={item.status} /></td>
-                    <td className="whitespace-nowrap px-3 py-1.5 font-mono text-xs tabular-nums text-zinc-600">
-                      {formatDate(item.date)}
-                    </td>
-                    <td className="max-w-[18rem] truncate px-3 py-1.5 font-medium text-zinc-800">{item.description}</td>
-                    <td className="whitespace-nowrap px-3 py-1.5 text-right font-mono tabular-nums">
-                      {formatCents(item.amountCents, item.currency)}
-                    </td>
+            <TableWrap>
+              <Table className="min-w-[30rem]">
+                <thead>
+                  <tr>
+                    <Th>Status</Th>
+                    <Th>Date</Th>
+                    <Th>Description</Th>
+                    <Th numeric>Amount</Th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {(worklist.data?.items ?? []).map((item) => (
+                    <tr key={item.key} className="last:border-b-0 transition-colors hover:bg-surface-muted/60">
+                      <Td><StatusChip status={item.status} /></Td>
+                      <Td className="whitespace-nowrap tabular text-meta text-foreground-muted">
+                        {formatDate(item.date)}
+                      </Td>
+                      <Td className="max-w-[18rem] truncate font-medium text-foreground">{item.description}</Td>
+                      <Td numeric className="whitespace-nowrap font-medium">
+                        {formatCents(item.amountCents, item.currency)}
+                      </Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </TableWrap>
           )}
-        </section>
+        </Panel>
 
-        <section className="rounded-md border border-zinc-200 bg-white">
-          <header className="flex items-center justify-between border-b border-zinc-200 px-4 py-2">
-            <PanelLabel>Activity</PanelLabel>
-            <Link href="/activity" className="text-xs font-medium text-zinc-500 hover:text-zinc-900">
-              Full log →
-            </Link>
-          </header>
+        <Panel>
+          <PanelHeader
+            title="Activity"
+            actions={
+              <Link href="/activity" className="text-meta font-medium text-foreground-muted hover:text-foreground">
+                Full log →
+              </Link>
+            }
+          />
 
           {activity.data && !activity.data.verification.valid ? (
-            <p className="mx-3 mt-3 rounded-sm bg-red-50 px-3 py-2 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-200">
-              Audit chain verification FAILED — the log may have been tampered with.
+            <p className="mx-3 mt-3 rounded-sm border border-danger-border bg-danger-bg px-3 py-2 text-meta font-medium text-danger-text">
+              Audit chain verification failed — the log may have been tampered with.
             </p>
           ) : (
-            <p className="mx-3 mt-3 rounded-sm bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200">
+            <p className="mx-3 mt-3 rounded-sm border border-success-border bg-success-bg px-3 py-2 text-meta font-medium text-success-text">
               Audit chain verified ({activity.data?.verification.checkedCount ?? 0} entries).
             </p>
           )}
 
-          <ul className="divide-y divide-zinc-100 p-3">
+          <ul className="divide-y divide-border/60 p-3">
             {(activity.data?.entries ?? []).slice().reverse().slice(0, 5).map((entry) => (
               <li key={entry.id} className="py-2 first:pt-0 last:pb-0">
-                <p className="text-[13px] font-medium text-zinc-800">{entry.action}</p>
-                <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <p className="text-secondary font-medium text-foreground">{entry.action}</p>
+                <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-meta text-foreground-muted">
                   {entry.actor} · {formatDateTime(entry.timestamp)} · <ShortHash hash={entry.hash} />
                 </p>
                 {entry.payload?.reason ? (
-                  <p className="mt-0.5 truncate text-xs italic text-zinc-500">“{String(entry.payload.reason)}”</p>
+                  <p className="mt-0.5 truncate text-meta italic text-foreground-muted">“{String(entry.payload.reason)}”</p>
                 ) : null}
               </li>
             ))}
             {(activity.data?.entries.length ?? 0) === 0 ? (
-              <li className="py-4 text-center text-sm text-muted-foreground">No activity recorded yet.</li>
+              <li className="py-4 text-center text-secondary text-foreground-muted">No activity recorded yet.</li>
             ) : null}
           </ul>
-        </section>
+        </Panel>
       </div>
 
-      <section className="rounded-md border border-zinc-200 bg-white">
-        <header className="flex items-center justify-between border-b border-zinc-200 px-4 py-2">
-          <PanelLabel>Settlement exceptions</PanelLabel>
-          <span className="font-mono text-xs tabular-nums text-muted-foreground">
-            {pendingExceptionCount !== null
-              ? `${exceptions.data?.exceptionCount} exception(s) of ${exceptions.data?.totalSettlements} settlement(s)`
-              : ''}
-          </span>
-        </header>
+      <Panel>
+        <PanelHeader
+          title="Settlement exceptions"
+          aside={
+            <span className="tabular text-meta text-foreground-muted">
+              {pendingExceptionCount !== null
+                ? `${exceptions.data?.exceptionCount} exception(s) of ${exceptions.data?.totalSettlements} settlement(s)`
+                : ''}
+            </span>
+          }
+          actions={
+            <Link href="/exceptions" className="text-meta font-medium text-foreground-muted hover:text-foreground">
+              Investigate →
+            </Link>
+          }
+        />
 
         {(exceptions.data?.items.length ?? 0) === 0 ? (
-          <p className="px-4 py-6 text-center text-sm text-muted-foreground">
+          <p className="px-4 py-8 text-center text-secondary text-foreground-muted">
             No open settlement exceptions.
           </p>
         ) : (
-          <ul className="divide-y divide-zinc-100">
+          <ul className="divide-y divide-border/60">
             {(exceptions.data?.items ?? []).slice(0, 4).map((item) => (
               <li key={item.id} className="flex items-center justify-between gap-4 px-4 py-2.5">
                 <div className="min-w-0">
-                  <p className="truncate text-[13px] font-medium text-zinc-800">
+                  <p className="truncate text-secondary font-medium text-foreground">
                     {item.provider}
                     {item.settlementReference ? ` · ${item.settlementReference}` : ''}
                   </p>
-                  <p className="truncate text-xs text-muted-foreground">{item.explanation}</p>
+                  <p className="truncate text-meta text-foreground-muted">{item.explanation}</p>
                 </div>
                 {item.outcome ? <OutcomeChip outcome={item.outcome} /> : null}
               </li>
             ))}
           </ul>
         )}
-      </section>
+      </Panel>
     </div>
   );
 }
