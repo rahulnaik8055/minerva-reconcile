@@ -1507,7 +1507,13 @@ export class ReviewService {
   }
 
   getAiStatus(): AiStatusDto {
-    const config = getAiProviderConfig();
+    let config;
+
+    try {
+      config = getAiProviderConfig();
+    } catch {
+      return { available: false, model: null };
+    }
 
     return { available: config !== null, model: config?.model ?? null };
   }

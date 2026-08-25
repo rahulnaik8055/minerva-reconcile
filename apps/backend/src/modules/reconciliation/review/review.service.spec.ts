@@ -370,13 +370,20 @@ describe('ReviewService (integration)', () => {
   });
 
   describe('AI assistance', () => {
-    const ORIGINAL_KEY = process.env['OPENAI_API_KEY'];
+    const ORIGINAL_KEY = process.env['AICREDITS_API_KEY'];
+    const ORIGINAL_MODEL = process.env['AICREDITS_MODEL'];
 
     afterEach(() => {
       if (ORIGINAL_KEY === undefined) {
-        delete process.env['OPENAI_API_KEY'];
+        delete process.env['AICREDITS_API_KEY'];
       } else {
-        process.env['OPENAI_API_KEY'] = ORIGINAL_KEY;
+        process.env['AICREDITS_API_KEY'] = ORIGINAL_KEY;
+      }
+
+      if (ORIGINAL_MODEL === undefined) {
+        delete process.env['AICREDITS_MODEL'];
+      } else {
+        process.env['AICREDITS_MODEL'] = ORIGINAL_MODEL;
       }
 
       jest.restoreAllMocks();
@@ -457,18 +464,23 @@ describe('ReviewService (integration)', () => {
       return proposal.id;
     }
 
-    it('reports availability based purely on the API key environment variable', () => {
-      delete process.env['OPENAI_API_KEY'];
+    it('reports availability based purely on the API key and model environment variables', () => {
+      delete process.env['AICREDITS_API_KEY'];
+      delete process.env['AICREDITS_MODEL'];
       expect(service.getAiStatus()).toEqual({ available: false, model: null });
 
-      process.env['OPENAI_API_KEY'] = 'test-key';
+      process.env['AICREDITS_API_KEY'] = 'test-key';
+      expect(service.getAiStatus().available).toBe(false);
+
+      process.env['AICREDITS_MODEL'] = 'test-model';
       expect(service.getAiStatus().available).toBe(true);
-      expect(typeof service.getAiStatus().model).toBe('string');
+      expect(service.getAiStatus().model).toBe('test-model');
     });
 
     it('refuses to explain proposals outside the ambiguous 0.60-0.89 band without calling the provider', async () => {
       const providerSpy = jest.spyOn(aiProvider, 'completeJson');
-      process.env['OPENAI_API_KEY'] = 'test-key';
+      process.env['AICREDITS_API_KEY'] = 'test-key';
+      process.env['AICREDITS_MODEL'] = 'test-model';
 
       const highScoreId = await seedPendingProposal();
 
@@ -477,7 +489,8 @@ describe('ReviewService (integration)', () => {
     });
 
     it('explains an eligible ambiguous proposal, dropping evidence refs that were never supplied', async () => {
-      process.env['OPENAI_API_KEY'] = 'test-key';
+      process.env['AICREDITS_API_KEY'] = 'test-key';
+      process.env['AICREDITS_MODEL'] = 'test-model';
       const proposalId = await seedAmbiguousProposal();
 
       jest.spyOn(aiProvider, 'completeJson').mockResolvedValue(validModelOutput());
@@ -498,7 +511,8 @@ describe('ReviewService (integration)', () => {
     });
 
     it('surfaces a service error when the model returns malformed output', async () => {
-      process.env['OPENAI_API_KEY'] = 'test-key';
+      process.env['AICREDITS_API_KEY'] = 'test-key';
+      process.env['AICREDITS_MODEL'] = 'test-model';
       const proposalId = await seedAmbiguousProposal();
 
       jest.spyOn(aiProvider, 'completeJson').mockResolvedValue({ unexpected: true });
@@ -507,7 +521,8 @@ describe('ReviewService (integration)', () => {
     });
 
     it('summarizes a computed exception with the same structured contract', async () => {
-      process.env['OPENAI_API_KEY'] = 'test-key';
+      process.env['AICREDITS_API_KEY'] = 'test-key';
+      process.env['AICREDITS_MODEL'] = 'test-model';
       await seedExceptionScenario();
 
       const feed = await service.listExceptions();
@@ -526,7 +541,8 @@ describe('ReviewService (integration)', () => {
     });
 
     it('rejects unknown exception ids', async () => {
-      process.env['OPENAI_API_KEY'] = 'test-key';
+      process.env['AICREDITS_API_KEY'] = 'test-key';
+      process.env['AICREDITS_MODEL'] = 'test-model';
 
       await expect(service.summarizeExceptionWithAi('settlement:does-not-exist')).rejects.toThrow(
         BadRequestException,

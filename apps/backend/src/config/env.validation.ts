@@ -7,9 +7,9 @@ export const validationSchema = Joi.object({
   FRONTEND_URL: Joi.string().default('http://localhost:3000'),
   JWT_SECRET: Joi.string().min(32).required(),
   JWT_EXPIRATION: Joi.string().default('7d'),
-  OPENAI_API_KEY: Joi.string().optional(),
-  OPENAI_MODEL: Joi.string().optional(),
-  OPENAI_BASE_URL: Joi.string().uri().optional(),
+  AICREDITS_API_KEY: Joi.string().optional(),
+  AICREDITS_MODEL: Joi.string().optional(),
+  AICREDITS_BASE_URL: Joi.string().uri().optional(),
   LOG_LEVEL: Joi.string()
     .valid('error', 'warn', 'info', 'http', 'verbose', 'debug', 'silly')
     .optional(),

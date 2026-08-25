@@ -1,5 +1,4 @@
-const DEFAULT_MODEL = 'gpt-4o-mini';
-const DEFAULT_BASE_URL = 'https://api.openai.com/v1';
+const DEFAULT_BASE_URL = 'https://api.aicredits.in/v1';
 const TIMEOUT_MS = 30_000;
 
 export class AiProviderError extends Error {
@@ -16,21 +15,33 @@ export interface AiProviderConfig {
 }
 
 export function getAiProviderConfig(): AiProviderConfig | null {
-  const apiKey = process.env['OPENAI_API_KEY']?.trim() ?? '';
+  const apiKey = process.env['AICREDITS_API_KEY']?.trim() ?? '';
 
   if (apiKey === '') {
     return null;
   }
 
+  const model = process.env['AICREDITS_MODEL']?.trim() ?? '';
+
+  if (model === '') {
+    throw new AiProviderError(
+      'AICREDITS_MODEL is required when AICREDITS_API_KEY is set',
+    );
+  }
+
   return {
     apiKey,
-    model: process.env['OPENAI_MODEL']?.trim() || DEFAULT_MODEL,
-    baseUrl: (process.env['OPENAI_BASE_URL']?.trim() || DEFAULT_BASE_URL).replace(/\/$/, ''),
+    model,
+    baseUrl: (process.env['AICREDITS_BASE_URL']?.trim() || DEFAULT_BASE_URL).replace(/\/$/, ''),
   };
 }
 
 export function isAiConfigured(): boolean {
-  return getAiProviderConfig() !== null;
+  try {
+    return getAiProviderConfig() !== null;
+  } catch {
+    return false;
+  }
 }
 
 export async function completeJson(systemPrompt: string, userPayload: unknown): Promise<unknown> {
