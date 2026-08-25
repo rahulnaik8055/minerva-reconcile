@@ -32,8 +32,8 @@ COPY apps/backend/drizzle.config.ts ./apps/backend/drizzle.config.ts
 COPY apps/backend/src/database/schema ./apps/backend/src/database/schema
 COPY apps/backend/drizzle ./apps/backend/drizzle
 
-# Install drizzle-kit for runtime migrations
-RUN npm install drizzle-kit --no-save
+# Install drizzle-kit and drizzle-orm for runtime migrations
+RUN npm install drizzle-kit drizzle-orm --no-save
 
 EXPOSE 3001
 CMD ["sh", "-c", "cd apps/backend && npx drizzle-kit push && cd /app && node apps/backend/dist/main.js"]
