@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { authService } from '@/services/auth.service';
+import { setAuthCookie, clearAuthCookie } from '@/lib/auth-cookie';
 import type { LoginInput, RegisterInput, User } from '@/types';
 
 interface AuthContextValue {
@@ -41,11 +42,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(async (input: LoginInput) => {
     const response = await authService.login(input);
+    setAuthCookie(response.accessToken);
     setCurrentUser(response.user);
   }, []);
 
   const register = useCallback(async (input: RegisterInput) => {
     const response = await authService.register(input);
+    setAuthCookie(response.accessToken);
     setCurrentUser(response.user);
   }, []);
 
@@ -55,6 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // The token may already be invalid; client state is cleared regardless.
     }
+    clearAuthCookie();
     setCurrentUser(null);
   }, []);
 
