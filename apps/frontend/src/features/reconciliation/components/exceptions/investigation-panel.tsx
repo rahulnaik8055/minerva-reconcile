@@ -357,7 +357,7 @@ export function InvestigationPanel({
           </span>
           <Link
             href={`/reconciliation/${item.proposalId}`}
-            className="inline-flex items-center rounded-sm bg-primary px-3 py-1.5 text-secondary font-semibold text-white hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+            className="inline-flex items-center rounded-sm bg-primary px-3 py-1.5 text-secondary font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
           >
             Open proposal
           </Link>

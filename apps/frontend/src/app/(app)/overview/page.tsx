@@ -6,7 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Panel, PanelHeader } from '@/components/ui/panel';
 import { Table, TableWrap, Td, Th } from '@/components/ui/table';
 import { SummaryStrip } from '@/features/reconciliation/components/summary-strip';
-import { useActivity, useExceptions, useWorklist } from '@/features/reconciliation/hooks/use-review';
+import {
+  useActivity,
+  useExceptions,
+  useWorklist,
+} from '@/features/reconciliation/hooks/use-review';
 import { formatCents, formatDate, formatDateTime } from '@/features/reconciliation/lib/format';
 import { StatusChip, OutcomeChip } from '@/features/reconciliation/components/status-chip';
 
@@ -47,14 +51,19 @@ export default function OverviewPage() {
           <PanelHeader
             title="Latest items awaiting or receiving decisions"
             actions={
-              <Link href="/reconciliation" className="text-meta font-medium text-foreground-muted hover:text-foreground">
+              <Link
+                href="/reconciliation"
+                className="text-meta font-medium text-foreground-muted hover:text-foreground"
+              >
                 View all →
               </Link>
             }
           />
 
           {worklist.isLoading ? (
-            <p className="px-4 py-10 text-center text-secondary text-foreground-muted" aria-busy>Loading…</p>
+            <p className="px-4 py-10 text-center text-secondary text-foreground-muted" aria-busy>
+              Loading…
+            </p>
           ) : (worklist.data?.items.length ?? 0) === 0 ? (
             <div className="p-4">
               <EmptyState
@@ -77,12 +86,19 @@ export default function OverviewPage() {
                 </thead>
                 <tbody>
                   {(worklist.data?.items ?? []).map((item) => (
-                    <tr key={item.key} className="last:border-b-0 transition-colors hover:bg-surface-muted/60">
-                      <Td><StatusChip status={item.status} /></Td>
+                    <tr
+                      key={item.key}
+                      className="last:border-b-0 transition-colors hover:bg-surface-muted/60"
+                    >
+                      <Td>
+                        <StatusChip status={item.status} />
+                      </Td>
                       <Td className="whitespace-nowrap tabular text-meta text-foreground-muted">
                         {formatDate(item.date)}
                       </Td>
-                      <Td className="max-w-[18rem] truncate font-medium text-foreground">{item.description}</Td>
+                      <Td className="max-w-[18rem] truncate font-medium text-foreground">
+                        {item.description}
+                      </Td>
                       <Td numeric className="whitespace-nowrap font-medium">
                         {formatCents(item.amountCents, item.currency)}
                       </Td>
@@ -98,7 +114,10 @@ export default function OverviewPage() {
           <PanelHeader
             title="Activity"
             actions={
-              <Link href="/activity" className="text-meta font-medium text-foreground-muted hover:text-foreground">
+              <Link
+                href="/activity"
+                className="text-meta font-medium text-foreground-muted hover:text-foreground"
+              >
                 Full log →
               </Link>
             }
@@ -115,19 +134,28 @@ export default function OverviewPage() {
           )}
 
           <ul className="divide-y divide-border/60 p-3">
-            {(activity.data?.entries ?? []).slice().reverse().slice(0, 5).map((entry) => (
-              <li key={entry.id} className="py-2 first:pt-0 last:pb-0">
-                <p className="text-secondary font-medium text-foreground">{entry.action}</p>
-                <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-meta text-foreground-muted">
-                  {entry.actor} · {formatDateTime(entry.timestamp)} · <ShortHash hash={entry.hash} />
-                </p>
-                {entry.payload?.reason ? (
-                  <p className="mt-0.5 truncate text-meta italic text-foreground-muted">“{String(entry.payload.reason)}”</p>
-                ) : null}
-              </li>
-            ))}
+            {(activity.data?.entries ?? [])
+              .slice()
+              .reverse()
+              .slice(0, 5)
+              .map((entry) => (
+                <li key={entry.id} className="py-2 first:pt-0 last:pb-0">
+                  <p className="text-secondary font-medium text-foreground">{entry.action}</p>
+                  <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-meta text-foreground-muted">
+                    {entry.actor} · {formatDateTime(entry.timestamp)} ·{' '}
+                    <ShortHash hash={entry.hash} />
+                  </p>
+                  {entry.payload?.reason ? (
+                    <p className="mt-0.5 truncate text-meta italic text-foreground-muted">
+                      “{String(entry.payload.reason)}”
+                    </p>
+                  ) : null}
+                </li>
+              ))}
             {(activity.data?.entries.length ?? 0) === 0 ? (
-              <li className="py-4 text-center text-secondary text-foreground-muted">No activity recorded yet.</li>
+              <li className="py-4 text-center text-secondary text-foreground-muted">
+                No activity recorded yet.
+              </li>
             ) : null}
           </ul>
         </Panel>
@@ -144,7 +172,10 @@ export default function OverviewPage() {
             </span>
           }
           actions={
-            <Link href="/exceptions" className="text-meta font-medium text-foreground-muted hover:text-foreground">
+            <Link
+              href="/exceptions"
+              className="text-meta font-medium text-foreground-muted hover:text-foreground"
+            >
               Investigate →
             </Link>
           }

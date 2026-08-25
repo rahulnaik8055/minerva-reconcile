@@ -103,11 +103,13 @@ function ImportCard({ type, title, hint }: { type: string; title: string; hint: 
           CSV up to 5 MB · identical files are rejected as duplicates.
         </p>
 
-        {busy ? <p className="text-meta font-medium text-foreground" aria-busy>Uploading and validating…</p> : null}
-
-        {error ? (
-          <Notice tone="danger">{error}</Notice>
+        {busy ? (
+          <p className="text-meta font-medium text-foreground" aria-busy>
+            Uploading and validating…
+          </p>
         ) : null}
+
+        {error ? <Notice tone="danger">{error}</Notice> : null}
 
         {result ? (
           <Notice tone="success">
@@ -146,9 +148,9 @@ function DemoPanel() {
         <div className="min-w-0">
           <PanelLabel>Demo data</PanelLabel>
           <p className="mt-1 max-w-3xl text-secondary leading-relaxed text-warning-text">
-            Replaces all reconciliation data with a deterministic synthetic dataset, then runs the real
-            matching engine. Every proposal, score, and piece of evidence is produced by the same pipeline
-            as a CSV import.
+            Replaces all reconciliation data with a deterministic synthetic dataset, then runs the
+            real matching engine. Every proposal, score, and piece of evidence is produced by the
+            same pipeline as a CSV import.
           </p>
         </div>
 
@@ -195,8 +197,8 @@ function DemoPanel() {
           <Notice tone="neutral">
             Loaded: {loadDemo.data.bankTransactions} bank transactions,{' '}
             {loadDemo.data.ledgerEntries} ledger entries, {loadDemo.data.invoices} invoices,{' '}
-            {loadDemo.data.settlements} settlements ({loadDemo.data.settlementLines} lines). The engine
-            created {loadDemo.data.proposalsCreated} proposals for review.
+            {loadDemo.data.settlements} settlements ({loadDemo.data.settlementLines} lines). The
+            engine created {loadDemo.data.proposalsCreated} proposals for review.
           </Notice>
         ) : null}
       </PanelBody>

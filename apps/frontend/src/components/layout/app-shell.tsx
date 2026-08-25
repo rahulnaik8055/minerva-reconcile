@@ -3,7 +3,15 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowLeftRight, Ellipsis, History, LayoutGrid, Menu, TriangleAlert, X } from 'lucide-react';
+import {
+  ArrowLeftRight,
+  Ellipsis,
+  History,
+  LayoutGrid,
+  Menu,
+  TriangleAlert,
+  X,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/hooks/use-auth';
@@ -50,7 +58,7 @@ function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () 
             onClick={onNavigate}
             aria-current={active ? 'page' : undefined}
             className={cn(
-              'relative flex items-center justify-between rounded-sm px-3 py-1.5 text-meta',
+              'relative flex items-center justify-between rounded-sm px-3 py-1.5 text-meta text-sm',
               active
                 ? 'bg-surface-muted font-semibold text-foreground'
                 : 'font-medium text-foreground-muted hover:bg-surface-muted/70 hover:text-foreground',
@@ -176,8 +184,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     setMenuOpen(false);
   }, [pathname]);
 
-  const moreActive =
-    isActive(pathname, '/import') || isActive(pathname, '/report');
+  const moreActive = isActive(pathname, '/import') || isActive(pathname, '/report');
 
   return (
     <div className="min-h-screen bg-background">
@@ -197,7 +204,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <header className="sticky top-0 z-30 flex h-14 items-center gap-1 border-b border-border bg-surface px-3 lg:hidden print:hidden">
-        <Button variant="ghost" size="icon" onClick={() => setMenuOpen(true)} aria-label="Open menu">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setMenuOpen(true)}
+          aria-label="Open menu"
+        >
           <Menu className="h-5 w-5" />
         </Button>
         <Link href="/overview" className="pl-1" aria-label="Reconcile home">
@@ -238,9 +250,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 aria-current={active ? 'page' : undefined}
                 className={cn(
                   'flex min-h-12 flex-col items-center justify-center gap-0.5 px-1 text-[10px] leading-tight',
-                  active
-                    ? 'font-semibold text-foreground'
-                    : 'font-medium text-foreground-muted',
+                  active ? 'font-semibold text-foreground' : 'font-medium text-foreground-muted',
                 )}
               >
                 <Icon className="h-4.5 w-4.5" aria-hidden />

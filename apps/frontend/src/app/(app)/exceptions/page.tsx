@@ -262,7 +262,7 @@ export default function ExceptionsPage() {
               aria-pressed={filters.types.size === 0}
               className={`rounded-full px-2.5 py-1 text-meta font-medium ring-1 ring-inset focus-visible:ring-2 focus-visible:ring-ring ${
                 filters.types.size === 0
-                  ? 'bg-primary text-white ring-primary'
+                  ? 'bg-primary text-primary-foreground ring-primary'
                   : 'bg-surface text-foreground-muted ring-border-strong hover:bg-surface-muted'
               }`}
             >
@@ -281,7 +281,7 @@ export default function ExceptionsPage() {
                   aria-pressed={active}
                   className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-meta font-medium ring-1 ring-inset focus-visible:ring-2 focus-visible:ring-ring ${
                     active
-                      ? 'bg-primary text-white ring-primary'
+                      ? 'bg-primary text-primary-foreground ring-primary'
                       : 'bg-surface text-foreground-muted ring-border-strong hover:bg-surface-muted'
                   }`}
                 >

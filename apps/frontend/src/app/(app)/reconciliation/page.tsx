@@ -34,7 +34,12 @@ export default function ReconciliationPage() {
         title="Reconciliation"
         description="Every bank movement with a proposed counterpart. Review before anything posts."
         actions={
-          <Button onClick={() => generate.mutate()} disabled={generate.isPending} size="lg">
+          <Button
+            onClick={() => generate.mutate()}
+            disabled={generate.isPending}
+            size="lg"
+            className="print:hidden"
+          >
             {generate.isPending ? 'Matching…' : 'Match unmatched banks'}
           </Button>
         }
@@ -44,7 +49,11 @@ export default function ReconciliationPage() {
 
       <Panel>
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-border px-3 pt-2 sm:px-4">
-          <div className="flex items-center gap-0.5 overflow-x-auto scrollbar-thin" role="tablist" aria-label="Status filter">
+          <div
+            className="flex items-center gap-0.5 overflow-x-auto scrollbar-thin"
+            role="tablist"
+            aria-label="Status filter"
+          >
             {FILTERS.map((item) => {
               const active = filter === item.value;
 
@@ -105,7 +114,9 @@ export default function ReconciliationPage() {
                   <Th>Status</Th>
                   <Th>Date</Th>
                   <Th>Transaction</Th>
-                  <Th numeric className="min-w-28">Amount</Th>
+                  <Th numeric className="min-w-28">
+                    Amount
+                  </Th>
                   <Th className="hidden md:table-cell">Proposed match</Th>
                   <Th className="hidden xl:table-cell">Confidence</Th>
                   <Th numeric>Action</Th>
@@ -113,7 +124,10 @@ export default function ReconciliationPage() {
               </thead>
               <tbody>
                 {data.items.map((item) => (
-                  <tr key={item.key} className="group transition-colors last:border-b-0 hover:bg-surface-muted/60">
+                  <tr
+                    key={item.key}
+                    className="group transition-colors last:border-b-0 hover:bg-surface-muted/60"
+                  >
                     <Td className="whitespace-nowrap">
                       <StatusChip status={item.status} />
                     </Td>
@@ -134,7 +148,10 @@ export default function ReconciliationPage() {
                     </Td>
                     <Td className="hidden max-w-64 md:table-cell">
                       {item.bestMatch ? (
-                        <span className="block truncate text-foreground" title={item.bestMatch.label}>
+                        <span
+                          className="block truncate text-foreground"
+                          title={item.bestMatch.label}
+                        >
                           {item.bestMatch.label}
                         </span>
                       ) : (
