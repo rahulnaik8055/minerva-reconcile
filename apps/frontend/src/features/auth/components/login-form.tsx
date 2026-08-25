@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Alert } from '@/components/ui/alert';
@@ -14,7 +13,6 @@ import { loginSchema, type LoginFormValues } from '../schemas/auth.schemas';
 import { useAuth } from '../hooks/use-auth';
 
 export function LoginForm() {
-  const router = useRouter();
   const { login } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -32,8 +30,7 @@ export function LoginForm() {
 
     try {
       await login(values);
-      router.push('/overview');
-      router.refresh();
+      window.location.href = '/overview';
     } catch (error) {
       setFormError(
         error instanceof ApiError

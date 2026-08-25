@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -15,7 +14,6 @@ import { registerSchema, type RegisterFormValues } from '../schemas/auth.schemas
 import { useAuth } from '../hooks/use-auth';
 
 export function RegisterForm() {
-  const router = useRouter();
   const { register: registerUser } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -43,8 +41,7 @@ export function RegisterForm() {
         password: values.password,
       });
       toast.success('Welcome! Your account has been created successfully.');
-      router.push('/overview');
-      router.refresh();
+      window.location.href = '/overview';
     } catch (error) {
       setFormError(
         error instanceof ApiError
