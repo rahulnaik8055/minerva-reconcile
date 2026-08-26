@@ -1624,8 +1624,9 @@ export class ReviewService {
       const raw = await completeJson(buildAiSystemPrompt(), payload);
       dto = sanitizeAiExplanation(raw, allowedRefs);
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'unknown error';
       throw new ServiceUnavailableException(
-        `AI assistance failed: ${error instanceof Error ? error.message : 'unknown error'}`,
+        `AI assistance failed: ${message}`,
       );
     }
 
