@@ -26,8 +26,10 @@ export function setTokenProvider(provider: () => Promise<string | null>) {
 export async function apiClient<T>(path: string, options?: RequestInit): Promise<T> {
   const token = await tokenProvider?.();
 
+  const isFormData = options?.body instanceof FormData;
+
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(!isFormData ? { 'Content-Type': 'application/json' } : {}),
     ...(options?.headers as Record<string, string>),
   };
 

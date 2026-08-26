@@ -51,8 +51,7 @@ export default function RegisterPage() {
       }
 
       if (signUp.status === 'complete') {
-        const { error: finalizeError } = await signUp.finalize();
-        if (!finalizeError) window.location.href = '/overview';
+        window.location.href = '/overview';
         return;
       }
 
@@ -86,7 +85,6 @@ export default function RegisterPage() {
       }
 
       if (signUp.status === 'complete') {
-        await signUp.finalize();
         window.location.href = '/overview';
       }
     } catch (err) {

@@ -43,8 +43,7 @@ export default function LoginPage() {
       }
 
       if (signIn.status === 'complete') {
-        const { error: finalizeError } = await signIn.finalize();
-        if (!finalizeError) window.location.href = '/overview';
+        window.location.href = '/overview';
       }
     } catch (err) {
       const message =

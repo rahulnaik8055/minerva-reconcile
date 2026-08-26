@@ -136,19 +136,8 @@ export async function importCsv(type: string, file: File): Promise<ImportSummary
   const formData = new FormData();
   formData.append('file', file);
 
-  const response = await fetch(`${process.env['NEXT_PUBLIC_API_URL'] || 'http://localhost:3001/api/v1'}${endpoint}`, {
+  return apiClient<ImportSummary>(endpoint, {
     method: 'POST',
-    credentials: 'include',
     body: formData,
   });
-
-  const body = (await response.json().catch(() => null)) as
-    | { success: boolean; data?: ImportSummary; error?: string }
-    | null;
-
-  if (!response.ok || !body?.data) {
-    throw new Error(body?.error ?? `Import failed with status ${response.status}`);
-  }
-
-  return body.data;
 }
