@@ -1,15 +1,19 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useLayoutEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { setTokenProvider } from '@/lib/api';
 
 export function ClerkTokenProvider({ children }: { children: React.ReactNode }) {
-  const { getToken } = useAuth();
+  const { getToken, isLoaded } = useAuth();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setTokenProvider(getToken);
   }, [getToken]);
+
+  if (!isLoaded) {
+    return null;
+  }
 
   return <>{children}</>;
 }
