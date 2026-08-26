@@ -24,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider afterSignOutUrl="/login">
       <html lang="en" className={`${inter.variable} ${serif.variable}`}>
         <body className="font-sans">
           <QueryProvider>
