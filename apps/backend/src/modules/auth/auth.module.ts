@@ -1,34 +1,18 @@
 import { Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
-import { JwtModule } from '@nestjs/jwt';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { ClerkAuthGuard } from '../../common/guards/clerk-auth.guard';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
-import { DEFAULT_JWT_EXPIRATION } from './auth.constants';
+import { ClerkWebhookController } from './clerk-webhook.controller';
+import { ClerkService } from './clerk.service';
 
 @Module({
-  imports: [
-    UsersModule,
-    JwtModule.registerAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.getOrThrow<string>('JWT_SECRET'),
-        signOptions: {
-          expiresIn: configService.get<string>('JWT_EXPIRATION') ?? DEFAULT_JWT_EXPIRATION,
-        },
-      }),
-    }),
-  ],
-  controllers: [AuthController],
+  imports: [UsersModule],
+  controllers: [AuthController, ClerkWebhookController],
   providers: [
-    AuthService,
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
+    { provide: APP_GUARD, useClass: ClerkAuthGuard },
+    ClerkService,
   ],
-  exports: [AuthService],
+  exports: [ClerkService],
 })
 export class AuthModule {}

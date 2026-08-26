@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { RegisterForm } from '@/features/auth/components/register-form';
+import { SignUp } from '@clerk/nextjs';
 
 export const metadata: Metadata = {
   title: 'Register | Reconcile',
@@ -14,13 +14,21 @@ export default function RegisterPage() {
           Reconcile
         </p>
 
-        <div className="space-y-8 rounded-md border border-border bg-surface p-6 sm:p-8">
+        <div className="space-y-4 rounded-md border border-border bg-surface p-6 sm:p-8">
           <div className="space-y-1.5 text-center">
             <h1 className="font-serif text-title font-semibold tracking-tight text-foreground">Create your account</h1>
             <p className="text-secondary text-foreground-muted">Set up your reconciliation workspace</p>
           </div>
 
-          <RegisterForm />
+          <SignUp
+            routing="hash"
+            appearance={{
+              elements: {
+                rootBox: 'mx-auto',
+                card: 'shadow-none border-none bg-transparent',
+              },
+            }}
+          />
 
           <p className="text-center text-secondary text-foreground-muted">
             Already have an account?{' '}

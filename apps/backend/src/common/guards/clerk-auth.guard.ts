@@ -1,19 +1,14 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { JwtPayload } from '../../interfaces';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
-import { COOKIE_NAME } from '../../modules/auth/auth.constants';
+import { verifyToken } from '@clerk/backend';
 
-type AuthenticatedRequest = Request & { user?: JwtPayload };
+type AuthenticatedRequest = Request & { user?: { sub: string; email: string } };
 
 @Injectable()
-export class JwtAuthGuard implements CanActivate {
-  constructor(
-    private readonly jwtService: JwtService,
-    private readonly reflector: Reflector,
-  ) {}
+export class ClerkAuthGuard implements CanActivate {
+  constructor(private readonly reflector: Reflector) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -33,8 +28,13 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
-      const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
-      request.user = payload;
+      const payload = await verifyToken(token, {
+        secretKey: process.env.CLERK_SECRET_KEY!,
+      });
+      request.user = {
+        sub: payload.sub as string,
+        email: (payload.email as string) ?? (payload as Record<string, unknown>).email_address as string ?? '',
+      };
       return true;
     } catch {
       throw new UnauthorizedException('Invalid or expired token');
@@ -43,17 +43,9 @@ export class JwtAuthGuard implements CanActivate {
 
   private extractToken(request: Request): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
-
     if (type === 'Bearer' && token) {
       return token;
     }
-
-    const cookieToken = request.cookies?.[COOKIE_NAME];
-
-    if (typeof cookieToken === 'string' && cookieToken.length > 0) {
-      return cookieToken;
-    }
-
     return undefined;
   }
 }

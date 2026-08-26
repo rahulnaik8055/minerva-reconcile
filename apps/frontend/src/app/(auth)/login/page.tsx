@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { LoginForm } from '@/features/auth/components/login-form';
+import { SignIn } from '@clerk/nextjs';
 
 export const metadata: Metadata = {
   title: 'Login | Reconcile',
@@ -14,13 +14,21 @@ export default function LoginPage() {
           Reconcile
         </p>
 
-        <div className="space-y-8 rounded-md border border-border bg-surface p-6 sm:p-8">
+        <div className="space-y-4 rounded-md border border-border bg-surface p-6 sm:p-8">
           <div className="space-y-1.5 text-center">
             <h1 className="font-serif text-title font-semibold tracking-tight text-foreground">Welcome back</h1>
             <p className="text-secondary text-foreground-muted">Sign in to continue to your workspace</p>
           </div>
 
-          <LoginForm />
+          <SignIn
+            routing="hash"
+            appearance={{
+              elements: {
+                rootBox: 'mx-auto',
+                card: 'shadow-none border-none bg-transparent',
+              },
+            }}
+          />
 
           <p className="text-center text-secondary text-foreground-muted">
             Don&apos;t have an account?{' '}

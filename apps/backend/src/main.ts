@@ -3,6 +3,7 @@ import { Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import cookieParser from 'cookie-parser';
+import express from 'express';
 import { AppModule } from './modules/app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -17,6 +18,8 @@ async function bootstrap(): Promise<void> {
   app.setGlobalPrefix('api/v1');
 
   app.use(cookieParser());
+
+  app.use('/api/v1/webhooks/clerk', express.raw({ type: 'application/json' }));
 
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalInterceptors(new TransformInterceptor());

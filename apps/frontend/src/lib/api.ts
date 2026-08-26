@@ -1,7 +1,5 @@
 export const API_BASE_URL = process.env['NEXT_PUBLIC_API_URL'] || 'http://localhost:3001/api/v1';
 
-const AUTH_COOKIE = 'reconcile_token';
-
 export class ApiError extends Error {
   readonly status: number;
 
@@ -19,17 +17,18 @@ interface ApiEnvelope<T> {
   error?: string;
 }
 
-function getAuthToken(): string | undefined {
-  if (typeof document === 'undefined') return undefined;
-  const match = document.cookie.match(new RegExp(`(?:^|; )${AUTH_COOKIE}=([^;]*)`));
-  return match?.[1];
+let tokenProvider: (() => Promise<string | null>) | null = null;
+
+export function setTokenProvider(provider: () => Promise<string | null>) {
+  tokenProvider = provider;
 }
 
 export async function apiClient<T>(path: string, options?: RequestInit): Promise<T> {
-  const token = getAuthToken();
+  const token = await tokenProvider?.();
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options?.headers as Record<string, string>,
+    ...(options?.headers as Record<string, string>),
   };
 
   if (token) {
@@ -38,7 +37,6 @@ export async function apiClient<T>(path: string, options?: RequestInit): Promise
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
-    credentials: 'include',
     headers,
   });
 
@@ -46,7 +44,6 @@ export async function apiClient<T>(path: string, options?: RequestInit): Promise
 
   if (!response.ok) {
     const message = body?.error ?? body?.message ?? `Request failed with status ${response.status}`;
-
     throw new ApiError(message, response.status);
   }
 

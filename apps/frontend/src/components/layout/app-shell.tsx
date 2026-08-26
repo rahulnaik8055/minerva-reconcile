@@ -12,9 +12,9 @@ import {
   TriangleAlert,
   X,
 } from 'lucide-react';
+import { useUser, useClerk } from '@clerk/nextjs';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/features/auth/hooks/use-auth';
 import { useDemoStatus } from '@/features/reconciliation/hooks/use-demo';
 import { useAiStatus } from '@/features/reconciliation/hooks/use-review';
 
@@ -88,20 +88,20 @@ function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () 
 }
 
 function UserBlock({ onAfterSignOut }: { onAfterSignOut?: () => void }) {
-  const { currentUser, logout } = useAuth();
+  const { user } = useUser();
+  const { signOut } = useClerk();
   const router = useRouter();
 
   const handleLogout = async () => {
-    await logout();
+    await signOut();
     router.push('/login');
-    router.refresh();
     onAfterSignOut?.();
   };
 
   return (
     <div className="border-t border-border p-3">
-      <p className="truncate text-meta font-medium text-foreground">{currentUser?.fullName}</p>
-      <p className="mt-0.5 truncate text-meta text-foreground-muted">{currentUser?.email}</p>
+      <p className="truncate text-meta font-medium text-foreground">{user?.fullName ?? user?.primaryEmailAddress?.emailAddress}</p>
+      <p className="mt-0.5 truncate text-meta text-foreground-muted">{user?.primaryEmailAddress?.emailAddress}</p>
       <Button variant="outline" size="sm" className="mt-2 w-full" onClick={handleLogout}>
         Sign out
       </Button>
