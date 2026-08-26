@@ -1,8 +1,8 @@
 {
-  "name": "@reconcile/frontend",
+  "name": "@matchbook/frontend",
   "version": "0.1.0",
   "private": true,
-  "description": "Reconcile frontend application",
+  "description": "Matchbook frontend application",
   "scripts": {
     "dev": "next dev --port 3000",
     "build": "next build",

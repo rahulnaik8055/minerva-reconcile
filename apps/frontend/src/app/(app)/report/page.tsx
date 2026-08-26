@@ -112,7 +112,7 @@ export default function ReportPage() {
         ? `${decisionsCsv}\n\n${buildExceptionsCsv(exceptionItems)}`
         : decisionsCsv;
 
-    downloadFile(`reconcile-report-${stamp}.csv`, body, 'text/csv');
+    downloadFile(`matchbook-report-${stamp}.csv`, body, 'text/csv');
   }
 
   function exportJson(): void {
@@ -134,7 +134,7 @@ export default function ReportPage() {
       exceptions.data?.items ?? [],
     );
 
-    downloadFile(`reconcile-report-${stamp}.json`, json, 'application/json');
+    downloadFile(`matchbook-report-${stamp}.json`, json, 'application/json');
   }
 
   return (

@@ -1,6 +1,6 @@
 # Authentication
 
-Reconcile ships with a complete, stateless JWT authentication flow using
+Matchbook ships with a complete, stateless JWT authentication flow using
 httpOnly cookies. This document explains how it works end-to-end.
 
 ## Overview

@@ -20,7 +20,7 @@ describe('HealthService', () => {
     const result = service.check();
 
     expect(result.status).toBe('ok');
-    expect(result.service).toBe('reconcile-api');
+    expect(result.service).toBe('matchbook-api');
     expect(typeof result.timestamp).toBe('string');
   });
 });

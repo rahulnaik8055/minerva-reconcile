@@ -40,7 +40,7 @@ Liveness probe. Returns 200 when the service is up.
   "data": {
     "status": "ok",
     "timestamp": "2026-01-15T10:30:00.000Z",
-    "service": "reconcile-api",
+    "service": "matchbook-api",
     "version": "0.1.0"
   }
 }

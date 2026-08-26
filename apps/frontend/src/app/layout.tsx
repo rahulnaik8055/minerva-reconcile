@@ -14,7 +14,7 @@ const serif = Source_Serif_4({
 });
 
 export const metadata: Metadata = {
-  title: 'Reconcile',
+  title: 'Matchbook',
   description: 'Evidence-first financial reconciliation workbench.',
 };
 

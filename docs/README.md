@@ -1,6 +1,6 @@
 # Documentation
 
-Welcome to the Reconcile documentation. This folder is the single source of
+Welcome to the Matchbook documentation. This folder is the single source of
 truth for how the project is built, how to extend it, and how to run it.
 
 ## Getting Started

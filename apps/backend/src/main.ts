@@ -30,8 +30,8 @@ async function bootstrap(): Promise<void> {
   });
 
   const config = new DocumentBuilder()
-    .setTitle('Reconcile API')
-    .setDescription('Reconcile - evidence-first reconciliation workbench API')
+    .setTitle('Matchbook API')
+    .setDescription('Matchbook - evidence-first reconciliation workbench API')
     .setVersion('0.1.0')
     .addTag('health', 'Health check endpoints')
     .addTag('auth', 'Authentication and user management')

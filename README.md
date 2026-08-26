@@ -1,4 +1,4 @@
-# Reconcile
+# Matchbook
 
 Evidence-first financial reconciliation workbench. Bank transaction and ledger CSVs are
 normalized, matched deterministically, scored transparently, and reviewed by a human

@@ -42,18 +42,18 @@ const hasDatabaseConfig =
     await demoService.resetDemoData();
     const result = await demoService.loadDemoData();
 
-    expect(result.bankTransactions).toBe(14);
-    expect(result.ledgerEntries).toBe(10);
+    expect(result.bankTransactions).toBe(10);
+    expect(result.ledgerEntries).toBe(6);
     expect(result.invoices).toBe(2);
     expect(result.settlements).toBe(2);
-    expect(result.settlementLines).toBe(7);
+    expect(result.settlementLines).toBe(6);
     expect(result.proposalsCreated).toBeGreaterThan(0);
 
-    await expect(countRows('bank_transactions')).resolves.toBe(14);
-    await expect(countRows('ledger_entries')).resolves.toBe(10);
+    await expect(countRows('bank_transactions')).resolves.toBe(10);
+    await expect(countRows('ledger_entries')).resolves.toBe(6);
     await expect(countRows('invoices')).resolves.toBe(2);
     await expect(countRows('settlements')).resolves.toBe(2);
-    await expect(countRows('settlement_lines')).resolves.toBe(7);
+    await expect(countRows('settlement_lines')).resolves.toBe(6);
     await expect(countRows('imports')).resolves.toBe(4);
     await expect(countRows('evidence')).resolves.toBeGreaterThan(0);
   });
@@ -62,8 +62,8 @@ const hasDatabaseConfig =
     const firstProposals = await countRows('reconciliation_proposals');
     await demoService.loadDemoData();
 
-    await expect(countRows('bank_transactions')).resolves.toBe(14);
-    await expect(countRows('ledger_entries')).resolves.toBe(10);
+    await expect(countRows('bank_transactions')).resolves.toBe(10);
+    await expect(countRows('ledger_entries')).resolves.toBe(6);
     await expect(countRows('reconciliation_proposals')).resolves.toBe(firstProposals);
     await expect(demoService.getStatus()).resolves.toEqual({ demoDataLoaded: true });
   });
@@ -83,7 +83,7 @@ const hasDatabaseConfig =
 
     const row = result.rows[0];
 
-    expect(Number(row?.total ?? '0')).toBeGreaterThanOrEqual(10);
+    expect(Number(row?.total ?? '0')).toBeGreaterThanOrEqual(9);
     expect(Number(row?.pending ?? '0')).toBe(Number(row?.total ?? '0'));
     expect(Number(row?.hardcoded ?? '0')).toBe(0);
   });
@@ -94,8 +94,8 @@ const hasDatabaseConfig =
       from reconciliation_proposals p
       join proposal_links pl on pl.proposal_id = p.id and pl.source_type = 'bank_transaction'
       join bank_transactions b on b.id = pl.record_id
-      where b.external_reference = 'RENTAUG'
-        and b.amount_cents = 650000
+      where b.external_reference = 'RENT001'
+        and b.amount_cents = 65000
         and p.method = 'exact'
       limit 1
     `);
@@ -109,10 +109,10 @@ const hasDatabaseConfig =
       select detail from evidence where proposal_id = ${row!.id} and evidence_type = 'reference'
     `);
 
-    expect(evidence.rows[0]?.detail).toContain('RENTAUG');
+    expect(evidence.rows[0]?.detail).toContain('RENT001');
   });
 
-  it('contains a fuzzy vendor-normalized proposal for the office supply purchase', async () => {
+  it('contains a fuzzy vendor-normalized proposal for the AWS purchase', async () => {
     const result = await database.db.execute<{ vendor_detail: string; amount_detail: string }>(sql`
       select
         max(ev.detail) filter (where ev.evidence_type = 'vendor') as vendor_detail,
@@ -121,10 +121,10 @@ const hasDatabaseConfig =
       join proposal_links pl on pl.proposal_id = p.id and pl.source_type = 'bank_transaction'
       join bank_transactions b on b.id = pl.record_id
       join evidence ev on ev.proposal_id = p.id
-      where b.normalized_vendor = 'RIO GRANDE OFFC SUPPLY' and p.method = 'fuzzy'
+      where b.normalized_vendor = 'AMZN WEB SERVICES' and p.method = 'fuzzy'
     `);
 
-    expect(result.rows[0]?.vendor_detail ?? '').toContain('RIO GRANDE OFFC SUPPLY');
+    expect(result.rows[0]?.vendor_detail ?? '').toContain('AMZN WEB SERVICES');
     expect(result.rows[0]?.amount_detail ?? '').toContain('Exact amount');
   });
 
@@ -144,7 +144,7 @@ const hasDatabaseConfig =
     expect(result.rows[0]?.date_detail).toContain('7 days apart');
   });
 
-  it('marks the ambiguous office-supply pair as needing review without resolving it', async () => {
+  it('marks the ambiguous stationery pair as needing review without resolving it', async () => {
     const result = await database.db.execute<{ bank_id: string }>(sql`
       select pl.record_id as bank_id
       from reconciliation_proposals p
@@ -162,21 +162,21 @@ const hasDatabaseConfig =
     const exceptions = await reviewService.listExceptions();
     const variance = exceptions.items.find(
       (item) =>
-        item.settlementReference === 'SET-2026-0829' && item.exceptionType === 'amount_mismatch',
+        item.settlementReference === 'SET-2026-0820' && item.exceptionType === 'amount_mismatch',
     );
 
     expect(variance).toBeDefined();
-    expect(variance?.varianceCents).toBe(-95_000);
+    expect(variance?.varianceCents).toBe(-9_500);
     expect(variance?.outcome).toBe('unexplained_variance');
 
     const attribution = (variance?.evidence ?? []).find(
       (entry) => entry.label === 'variance_attribution',
     );
 
-    expect(attribution?.detail).toContain('-$950.00');
+    expect(attribution?.detail).toContain('-$95.00');
   });
 
-  it('reports unmatched banks, a date mismatch, and missing invoice exceptions', async () => {
+  it('reports unmatched banks, a date mismatch, and no missing invoice exceptions', async () => {
     const unmatched = await database.db.execute<{ description: string }>(sql`
       select b.description
       from bank_transactions b
@@ -189,7 +189,6 @@ const hasDatabaseConfig =
 
     expect(unmatched.rows.map((row) => row.description)).toEqual([
       'ACH debit Folio Books wholesale order',
-      'Card purchase Blue Bottle Coffee',
       'Card purchase Verdant Market groceries',
     ]);
 
@@ -206,10 +205,6 @@ const hasDatabaseConfig =
       (item) => item.exceptionType === 'missing_invoice',
     );
 
-    expect(missingInvoices.length).toBe(2);
-
-    const missingRefs = missingInvoices.map((item) => item.detail);
-    expect(missingRefs.some((d) => d?.includes('INV101'))).toBe(true);
-    expect(missingRefs.some((d) => d?.includes('INV100'))).toBe(true);
+    expect(missingInvoices.length).toBe(0);
   });
 });

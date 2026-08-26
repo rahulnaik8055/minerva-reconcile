@@ -62,7 +62,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-sm">
         <p className="mb-6 text-center font-serif text-title font-semibold tracking-tight text-foreground">
-          Reconcile
+          Matchbook
         </p>
 
         <div className="space-y-4 rounded-md border border-border bg-surface p-6 sm:p-8">

@@ -7,7 +7,7 @@ export class HealthService {
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
-      service: 'reconcile-api',
+      service: 'matchbook-api',
       version: '0.1.0',
     };
   }

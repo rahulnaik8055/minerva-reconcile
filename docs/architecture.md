@@ -2,7 +2,7 @@
 
 ## Overview
 
-Reconcile is a full-stack TypeScript monorepo managed with
+Matchbook is a full-stack TypeScript monorepo managed with
 [npm workspaces](https://docs.npmjs.com/cli/v7/using-npm/workspaces).
 
 ```
@@ -77,8 +77,8 @@ Reconcile is a full-stack TypeScript monorepo managed with
 - Backend modules are feature folders (`modules/<feature>`).
 - Database tables use snake_case columns; TypeScript uses camelCase
   (Drizzle maps automatically).
-- Package names: root `reconcile`, apps
-  `@reconcile/backend` and `@reconcile/frontend`.
+- Package names: root `matchbook`, apps
+  `@matchbook/backend` and `@matchbook/frontend`.
 
 See [backend-architecture.md](backend-architecture.md),
 [frontend-architecture.md](frontend-architecture.md), and

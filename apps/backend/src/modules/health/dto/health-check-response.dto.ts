@@ -7,7 +7,7 @@ export class HealthCheckResponseDto {
   @ApiProperty({ example: '2024-01-15T10:30:00.000Z' })
   timestamp!: string;
 
-  @ApiProperty({ example: 'reconcile-api' })
+  @ApiProperty({ example: 'matchbook-api' })
   service!: string;
 
   @ApiProperty({ example: '0.1.0' })

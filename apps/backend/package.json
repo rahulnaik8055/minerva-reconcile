@@ -1,8 +1,8 @@
 {
-  "name": "@reconcile/backend",
+  "name": "@matchbook/backend",
   "version": "0.1.0",
   "private": true,
-  "description": "Reconcile backend API server",
+  "description": "Matchbook backend API server",
   "scripts": {
     "build": "nest build",
     "start": "nest start",

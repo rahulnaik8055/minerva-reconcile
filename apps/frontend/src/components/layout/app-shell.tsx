@@ -41,7 +41,7 @@ function isActive(pathname: string, href: string): boolean {
 function Wordmark() {
   return (
     <span className="font-serif text-title font-semibold tracking-tight text-foreground">
-      Reconcile
+      Matchbook
     </span>
   );
 }
@@ -232,7 +232,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         >
           <Menu className="h-5 w-5" />
         </Button>
-        <Link href="/overview" className="pl-1" aria-label="Reconcile home">
+        <Link href="/overview" className="pl-1" aria-label="Matchbook home">
           <Wordmark />
         </Link>
       </header>
