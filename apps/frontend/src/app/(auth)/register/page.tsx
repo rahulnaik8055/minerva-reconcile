@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useSignUp } from '@clerk/nextjs';
+import { useSignUp, useClerk } from '@clerk/nextjs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
@@ -12,6 +12,7 @@ import { Alert } from '@/components/ui/alert';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { setActive } = useClerk();
   const { signUp, errors } = useSignUp();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -50,8 +51,9 @@ export default function RegisterPage() {
         return;
       }
 
-      if (signUp.status === 'complete') {
-        window.location.href = '/overview';
+      if (signUp.status === 'complete' && signUp.createdSessionId) {
+        await setActive({ session: signUp.createdSessionId });
+        router.replace('/overview');
         return;
       }
 
@@ -62,6 +64,7 @@ export default function RegisterPage() {
     } catch (err) {
       const message =
         (err as { errors?: { message: string }[] }).errors?.[0]?.message ??
+        (err as { message?: string }).message ??
         'Something went wrong. Please try again.';
       setError(message);
     } finally {
@@ -80,16 +83,20 @@ export default function RegisterPage() {
       });
 
       if (result.error) {
-        setError(result.error.message);
+        setError(result.error.message ?? 'Invalid verification code. Please try again.');
         return;
       }
 
-      if (signUp.status === 'complete') {
-        window.location.href = '/overview';
+      if (signUp.status === 'complete' && signUp.createdSessionId) {
+        await setActive({ session: signUp.createdSessionId });
+        router.replace('/overview');
+      } else {
+        setError('Verification succeeded but session could not be created. Please try signing in.');
       }
     } catch (err) {
       const message =
         (err as { errors?: { message: string }[] }).errors?.[0]?.message ??
+        (err as { message?: string }).message ??
         'Invalid verification code. Please try again.';
       setError(message);
     } finally {

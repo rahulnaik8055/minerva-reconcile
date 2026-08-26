@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useSignIn } from '@clerk/nextjs';
+import { useSignIn, useClerk } from '@clerk/nextjs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
@@ -12,6 +12,7 @@ import { Alert } from '@/components/ui/alert';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { setActive } = useClerk();
   const { signIn, errors } = useSignIn();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -38,16 +39,20 @@ export default function LoginPage() {
       });
 
       if (result.error) {
-        setError(result.error.message);
+        setError(result.error.message ?? 'Incorrect email or password. Please try again.');
         return;
       }
 
-      if (signIn.status === 'complete') {
-        window.location.href = '/overview';
+      if (signIn.status === 'complete' && signIn.createdSessionId) {
+        await setActive({ session: signIn.createdSessionId });
+        router.replace('/overview');
+      } else {
+        setError('Unable to sign in. Please try again.');
       }
     } catch (err) {
       const message =
         (err as { errors?: { message: string }[] }).errors?.[0]?.message ??
+        (err as { message?: string }).message ??
         'Something went wrong. Please try again.';
       setError(message);
     } finally {
